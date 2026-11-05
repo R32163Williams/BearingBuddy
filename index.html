@@ -1,0 +1,1479 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Bearing Buddy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: a machinist's lookup sheet. Header strip, then a two-column work area
+   (reference part + dimension drawing | interchange results), stacking on phones. */
+:root{
+  --bg:#eef0f2; --surface:#ffffff; --sunk:#e3e7ea; --line:#c9d0d6; --ink:#1b2329; --muted:#5d6a74;
+  --accent:#b5650d; --accent-ink:#ffffff; --accent-soft:#f6e6d2; --dim:#2a5d86;
+  --ok:#1f7a4a; --ok-soft:#dcefe4; --warn:#9a6a00; --warn-soft:#f6ecd0; --bad:#a83232; --bad-soft:#f5dcdc;
+  --display:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13181c; --surface:#1b2227; --sunk:#232c32; --line:#34404a; --ink:#e4e9ed; --muted:#97a5b0;
+  --accent:#e59a45; --accent-ink:#1a1206; --accent-soft:#3a2a17; --dim:#7cb4de;
+  --ok:#5cc08a; --ok-soft:#173326; --warn:#e0b04a; --warn-soft:#352b12; --bad:#e57b7b; --bad-soft:#3a1d1d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13181c; --surface:#1b2227; --sunk:#232c32; --line:#34404a; --ink:#e4e9ed; --muted:#97a5b0;
+  --accent:#e59a45; --accent-ink:#1a1206; --accent-soft:#3a2a17; --dim:#7cb4de;
+  --ok:#5cc08a; --ok-soft:#173326; --warn:#e0b04a; --warn-soft:#352b12; --bad:#e57b7b; --bad-soft:#3a1d1d; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:grid;gap:18px}
+header.top{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:12px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(24px,4vw,34px);letter-spacing:-.01em;margin:0;line-height:1.1}
+h1 small{display:block;font-family:var(--mono);font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+h2{font-family:var(--display);font-weight:700;font-size:17px;margin:0;text-wrap:balance}
+.label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;color:var(--muted);font:600 13px var(--body);padding:7px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;font:800 17px var(--body);color:var(--muted);padding:12px 16px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.grid2{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;gap:14px;min-width:0}
+.field{display:grid;gap:4px}
+.inrow{display:flex;gap:6px;align-items:stretch}
+.inrow input{flex:1 1 auto;min-width:0}
+.useg{flex:0 0 auto}
+.useg button{padding:0 11px;font-size:13px;min-width:40px}
+.unitnudge{margin:2px 0 0;color:var(--warn);font-size:13px}
+
+input,select,textarea{font:500 15px var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 10px;width:100%;min-width:0}
+textarea{font-size:12.5px;min-height:150px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+.row>*{flex:1 1 120px;min-width:0}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--bg);font:600 14px var(--body);padding:9px 14px;border-radius:6px;cursor:pointer;flex:0 0 auto}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.accent{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.sm{padding:5px 9px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.spec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.spec div{background:var(--surface);padding:8px 10px;display:grid;gap:2px}
+.spec b{font:600 16px var(--mono);font-variant-numeric:tabular-nums}
+.spec em{font:400 12px var(--mono);color:var(--muted);font-style:normal}
+.refhead{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.refhead .pn{font:700 22px var(--mono);letter-spacing:-.01em}
+.pill{display:inline-flex;align-items:center;gap:5px;font:600 11.5px var(--mono);padding:3px 8px;border-radius:999px;white-space:nowrap;letter-spacing:.02em}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.muted{background:var(--sunk);color:var(--muted)}
+
+svg.draw{width:100%;height:auto;display:block}
+[hidden]{display:none!important}
+.panelgrid{display:grid;gap:14px;min-width:0}
+svg.draw text{font-family:var(--mono);fill:var(--ink)}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11px var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);background:var(--sunk);position:sticky;top:0}
+td.num,th.num{text-align:right}
+tr:last-child td{border-bottom:0}
+td .pn{font:600 14px var(--mono)}
+td .sub{color:var(--muted);font-size:12px}
+.bar{position:relative;height:14px;background:var(--sunk);border-radius:3px;min-width:120px}
+.bar span{position:absolute;top:2px;bottom:2px;border-radius:2px}
+.bar .r{background:var(--dim);opacity:.35}
+.bar .c{background:var(--dim)}
+.bar .o{top:0;bottom:0;background:var(--ok);opacity:.85}
+.empty{padding:22px;text-align:center;color:var(--muted);background:var(--sunk);border-radius:6px}
+.note{font-size:13px;color:var(--muted)}
+.note strong{color:var(--ink)}
+.banner{background:var(--accent-soft);border:1px solid var(--accent);color:var(--ink);border-radius:6px;padding:10px 12px;font-size:13.5px}
+.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.rules{grid-template-columns:minmax(0,1fr)}}
+.rules div{background:var(--sunk);border-radius:6px;padding:10px 12px;font-size:13px}
+.rules b{display:block;font-family:var(--display);font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:6px;font-weight:600;font-size:14px;z-index:20}
+.actions{display:flex;gap:6px;justify-content:flex-end}
+details summary{cursor:pointer;font-weight:600}
+.dec{display:grid;gap:10px}
+.askbox{border:1.5px solid var(--dim);border-radius:8px;padding:12px;display:grid;gap:10px;background:var(--surface);font-size:14.5px}
+.yn{display:flex;gap:8px;flex-wrap:wrap}
+.ynbtn{flex:1 1 140px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:600 14px var(--body);padding:10px 12px;border-radius:6px;cursor:pointer}
+.ynbtn[aria-pressed="true"]{background:var(--dim);border-color:var(--dim);color:var(--surface)}
+.altrow{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-radius:6px;background:var(--bg)}
+.altrow .pn{font:700 15px var(--mono)}
+.altrow .sub{color:var(--muted);font-size:12.5px}
+.altrow.fit .ck{background:var(--ok);color:var(--surface)}
+.altrow.nofit .ck{background:var(--bad);color:var(--surface)}
+.altrow.maybe .ck{background:var(--warn-soft);color:var(--warn)}
+.vb{display:inline-block;font:600 10.5px var(--mono);letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.vb.ok{background:var(--ok-soft);color:var(--ok)}
+.vb.warn{background:var(--warn-soft);color:var(--warn)}
+.vtoggle{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;cursor:pointer;flex:0 0 auto;align-self:center}
+.vtoggle input{width:auto;accent-color:var(--ok)}
+#foot a,.note a{color:var(--dim)}
+.linkbtn{all:unset;cursor:pointer;justify-self:start;color:var(--accent);font-weight:600;font-size:14px;margin-top:4px}
+.linkbtn:hover{text-decoration:underline}
+.linkbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.field .note{font-size:12.5px}
+#resBody,#nearBody,#dimBody{display:grid;gap:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.mcard{border:1.5px solid var(--line);border-radius:8px;padding:12px;display:grid;gap:10px;background:var(--surface);min-width:0;align-content:start;content-visibility:auto;contain-intrinsic-size:auto 560px}
+.mcard.fit{border-color:var(--ok)}
+/* Exact matches glow softly so they stand out from the rest. */
+.mcard.exact{border-width:2px;box-shadow:0 0 0 3px var(--ok-soft),0 0 16px color-mix(in srgb, var(--ok) 35%, transparent);animation:exactGlow 2.4s ease-in-out 2}
+.pnwrap{position:relative;flex:1;display:flex}.pnwrap input{flex:1;min-width:0}
+.sugg{position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:30;background:var(--surface);border:1px solid var(--line);border-radius:8px;max-height:320px;overflow:auto;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.sugg button{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--sunk);padding:8px 10px;color:var(--ink);font:inherit;cursor:pointer}
+.sugg button:last-child{border-bottom:0}.sugg button[aria-selected="true"],.sugg button:hover{background:var(--sunk)}
+.sugg .sb{color:var(--muted);font-size:12.5px;white-space:nowrap}
+@keyframes exactGlow{50%{box-shadow:0 0 0 3px var(--ok-soft),0 0 26px color-mix(in srgb, var(--ok) 55%, transparent)}}
+@media (prefers-reduced-motion:reduce){.mcard.exact{animation:none}}
+.mcard.maybe{border-color:var(--warn);border-style:dashed}
+.mcard.kind{border-color:var(--bad);border-width:2px;background:color-mix(in srgb, var(--bad-soft) 35%, var(--surface))}
+.kindbar{background:var(--bad-soft);color:var(--bad);font-weight:600;font-size:13.5px;padding:8px 10px;border-radius:6px;line-height:1.35}
+details.kindwarn>summary{color:var(--bad);font-weight:700}
+.maybe .verdict{background:var(--warn-soft);color:var(--warn)}
+li.unk .ck{background:var(--warn-soft);color:var(--warn)}
+li.diff .ck{background:var(--warn);color:var(--surface)}
+li.diff b{color:var(--warn)}
+.mhead{display:flex;justify-content:space-between;gap:8px;align-items:start}
+.mhead .pn{font:700 16px var(--mono);overflow-wrap:anywhere}
+.mhead .sub{color:var(--muted);font-size:12px}
+.verdict{font:700 13px var(--body);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.fit .verdict{background:var(--ok);color:var(--surface)}
+.nofit .verdict{background:var(--bad-soft);color:var(--bad)}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.checks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;align-items:start;font-size:14px;line-height:1.3}
+.checks .sub{color:var(--muted);font-size:12.5px}
+.ck{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px}
+li.ok .ck{background:var(--ok);color:var(--surface)}
+li.bad .ck{background:var(--bad);color:var(--surface)}
+li.info .ck{background:var(--sunk);color:var(--muted)}
+svg.side{width:100%;height:auto;display:block;background:var(--bg);border-radius:6px}
+.mcard details summary{font-size:12.5px;color:var(--muted);font-weight:500}
+.verdictbig{font:700 18px var(--display);padding:12px 14px;border-radius:8px;text-wrap:balance}
+.verdictbig.fit{background:var(--ok-soft);color:var(--ok)}
+.verdictbig.nofit{background:var(--sunk);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{display:grid;gap:2px;justify-items:center;font:700 19px var(--mono);padding:6px 9px 5px;border:1.5px solid var(--accent);color:var(--ink);background:var(--surface);border-radius:4px;cursor:pointer;min-width:38px}
+.chip small{font:600 9px var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.chip.blank{border-style:dashed;border-color:var(--line);color:var(--muted);font-weight:500}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip[aria-pressed="true"] small{color:var(--accent-ink)}
+.decbox{background:var(--accent-soft);border-radius:6px;padding:12px;display:grid;gap:8px;font-size:13.5px}
+.decbox h3{margin:0;font:700 15px var(--display)}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:baseline}
+.kv dt{font:600 12px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.kv dd{margin:0}
+.kv button{all:unset;cursor:pointer;font:600 12px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.kv button:hover{color:var(--accent)}
+.opts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;max-height:260px;overflow:auto;border-top:1px solid var(--line);padding-top:8px}
+.opts .c{font:600 13px var(--mono)}
+.opts .on{color:var(--accent);font-weight:700}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Match buddy: a tribute to the founder. His head and neck peek in from the right edge when a match is found. */
+.buddy{position:fixed;right:0;bottom:16vh;z-index:50;display:flex;align-items:flex-start;pointer-events:none;
+  transform:translateX(105%);transition:transform .5s cubic-bezier(.25,1.35,.45,1)}
+.buddy.show{transform:translateX(44px);pointer-events:auto}
+.buddy button{all:unset;cursor:pointer;display:block;width:180px;line-height:0}
+.buddy button:focus-visible{outline:3px solid var(--dim);outline-offset:2px}
+.buddy img{width:100%;height:auto;display:block;filter:drop-shadow(-4px 6px 8px rgba(0,0,0,.25));transform-origin:85% 95%}
+.buddy.show img{animation:buddyNod .9s .5s ease-in-out}
+@keyframes buddyNod{0%,100%{transform:rotate(0)}30%{transform:rotate(-6deg)}60%{transform:rotate(3deg)}}
+.buddy .bubble{position:relative;align-self:flex-start;margin-right:-6px;margin-top:-6px;background:var(--surface);color:var(--ink);border:2px solid var(--ink);border-radius:14px;padding:8px 12px;font-family:var(--display);font-weight:800;font-size:15px;line-height:1.25;width:max-content;max-width:180px;box-shadow:0 4px 14px rgba(0,0,0,.18);
+  opacity:0;transform:scale(.6);transform-origin:bottom right;transition:opacity .2s .45s, transform .25s .45s}
+.buddy.show .bubble{opacity:1;transform:scale(1)}
+.buddy .bubble::after{content:"";position:absolute;right:-9px;bottom:10px;border:8px solid transparent;border-left-color:var(--ink);border-right:0}
+@media (max-width:560px){.buddy button{width:130px}.buddy.show{transform:translateX(32px)}.buddy .bubble{font-size:14px;max-width:140px}.buddy{bottom:12vh}}
+@media (prefers-reduced-motion:reduce){.buddy{transition:opacity .2s;opacity:0}.buddy.show{opacity:1}.buddy.show img{animation:none}.buddy .bubble{transition:none}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1><small>Mounted bearing interchange</small>Bearing Buddy</h1>
+    <div class="row" style="flex:0 1 auto;align-items:center;gap:10px 14px">
+      <button class="btn accent" id="newSearch" style="font-size:16px;font-weight:800;padding:11px 20px;box-shadow:0 2px 0 rgba(0,0,0,.15)">↺ New search</button>
+      <span class="label" style="flex:0 0 auto;align-self:center">Units</span>
+      <div class="seg" role="group" aria-label="Units" style="flex:0 0 auto">
+        <button id="u-in" aria-pressed="true">inch</button>
+        <button id="u-mm" aria-pressed="false">mm</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="t-part" aria-selected="true">Cross a part number</button>
+    <button role="tab" id="t-dim" aria-selected="false">I don't know the part #</button>
+    <button role="tab" id="t-cat" aria-selected="false">Catalog</button>
+  </nav>
+
+  <div id="loadState" class="empty">Loading the bearing catalog…</div>
+
+  <!-- CROSS BY PART -->
+  <section id="v-part" class="grid2" hidden>
+    <div class="panel">
+      <div class="field">
+        <label class="label" for="pnInput">Part number</label>
+        <div class="row">
+          <div class="pnwrap"><input id="pnInput" placeholder="e.g. UCP205-16" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-controls="pnSugg" aria-expanded="false"><div id="pnSugg" class="sugg" role="listbox" hidden></div></div>
+          <button class="btn" id="pnGo">Cross</button>
+        </div>
+        <button class="linkbtn" id="toDim">Don't know the part #? Find it by measuring →</button>
+      </div>
+      <div id="refCard"></div>
+    </div>
+    <div class="panel">
+      <div class="refhead"><h2 id="resTitle">Interchanges</h2><span id="resCount" class="pill muted"></span></div>
+      <div id="resBody"></div>
+      <details id="nearWrap" hidden>
+        <summary>Close, but not a direct swap <span id="nearCount" class="pill warn"></span></summary>
+        <div id="nearBody" style="margin-top:10px"></div>
+      </details>
+    </div>
+  </section>
+
+  <!-- SEARCH BY DIMENSIONS -->
+  <section id="v-dim" class="grid2" hidden>
+    <div class="panel">
+      <h2>Measure the old bearing</h2>
+      <div class="field"><span class="label">Step 1 · What kind of mount is it?</span>
+        <div class="yn" id="dMountBtns" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+          <button class="ynbtn" style="flex:1 1 0;padding:10px 6px" data-mount="Pillow block" aria-pressed="false">Pillow block</button>
+          <button class="ynbtn" style="flex:1 1 0;padding:10px 6px" data-mount="4-bolt flange" aria-pressed="false">4-bolt flange</button>
+          <button class="ynbtn" style="flex:1 1 0;padding:10px 6px" data-mount="2-bolt flange" aria-pressed="false">2-bolt flange</button>
+          <button class="ynbtn" style="flex:1 1 0;padding:10px 6px" data-mount="Piloted flange" aria-pressed="false">Piloted flange</button>
+        </div>
+        <input type="hidden" id="dMount" value="">
+      </div>
+      <p class="note" id="dPick" style="margin:0">Choose one to see what to measure.</p>
+      <div id="dStep2" class="panelgrid" hidden>
+      <p class="note" style="margin:0"><strong>Step 2 · Fill in what you know.</strong> One measurement is enough to start; each one you add narrows the list.</p>
+      <svg class="draw" data-pic="Pillow block" viewBox="0 0 360 200" role="img" aria-label="Where to measure: 1 shaft size, 2 base to center, 3 bolt centers">
+        <line x1="10" y1="150" x2="350" y2="150" stroke="var(--muted)" stroke-width="1.5"/>
+        <path d="M40 150 L40 130 L126 130 L126 82 A54 54 0 0 1 234 82 L234 130 L320 130 L320 150 Z" fill="var(--sunk)" stroke="var(--ink)" stroke-width="1.5"/>
+        <circle cx="180" cy="82" r="28" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+        <line x1="60" y1="124" x2="60" y2="156" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
+        <line x1="300" y1="124" x2="300" y2="156" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
+        <line x1="152" y1="82" x2="208" y2="82" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#am)" marker-end="url(#am)"/>
+        <circle cx="180" cy="66" r="10" fill="var(--accent)"/><text x="180" y="70.5" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-ink)">1</text>
+        <line x1="234" y1="82" x2="276" y2="82" stroke="var(--accent)" stroke-width=".8" stroke-dasharray="3 2"/>
+        <line x1="268" y1="82" x2="268" y2="150" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#am)" marker-end="url(#am)"/>
+        <circle cx="284" cy="112" r="10" fill="var(--accent)"/><text x="284" y="116.5" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-ink)">2</text>
+        <line x1="60" y1="176" x2="300" y2="176" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#am)" marker-end="url(#am)"/>
+        <line x1="60" y1="158" x2="60" y2="182" stroke="var(--accent)" stroke-width=".8"/><line x1="300" y1="158" x2="300" y2="182" stroke="var(--accent)" stroke-width=".8"/>
+        <circle cx="180" cy="176" r="10" fill="var(--accent)"/><text x="180" y="180.5" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-ink)">3</text>
+        <defs><marker id="am" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L8 4 L0 7 Z" fill="var(--accent)"/></marker></defs>
+      </svg>
+      <svg class="draw" data-pic="4-bolt flange" hidden viewBox="0 0 360 200" role="img" aria-label="Where to measure on a 4-bolt flange: 1 shaft size, 2 bolt centers along one side">
+        <rect x="100" y="20" width="160" height="160" rx="16" fill="var(--sunk)" stroke="var(--ink)" stroke-width="1.5"/>
+        <circle cx="180" cy="100" r="46" fill="none" stroke="var(--ink)" stroke-width="1"/>
+        <circle cx="180" cy="100" r="26" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+        <circle cx="124" cy="44" r="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/><circle cx="124" cy="156" r="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/><circle cx="236" cy="44" r="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/><circle cx="236" cy="156" r="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+        <line x1="156" y1="100" x2="204" y2="100" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#am4)" marker-end="url(#am4)"/>
+        <circle cx="180" cy="84" r="10" fill="var(--accent)"/><text x="180" y="88.5" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-ink)">1</text>
+        <line x1="124" y1="10" x2="236" y2="10" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#am4)" marker-end="url(#am4)"/>
+        <line x1="124" y1="4" x2="124" y2="36" stroke="var(--accent)" stroke-width=".8"/><line x1="236" y1="4" x2="236" y2="36" stroke="var(--accent)" stroke-width=".8"/>
+        <circle cx="270" cy="10" r="10" fill="var(--accent)"/><text x="270" y="14.5" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-ink)">2</text>
+        <defs><marker id="am4" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L8 4 L0 7 Z" fill="var(--accent)"/></marker></defs>
+      </svg>
+      <svg class="draw" data-pic="2-bolt flange" hidden viewBox="0 0 360 200" role="img" aria-label="Where to measure on a 2-bolt flange: 1 shaft size, 2 bolt centers">
+        <path d="M50 78 Q80 30 180 26 Q280 30 310 78 L310 122 Q280 170 180 174 Q80 170 50 122 Z" fill="var(--sunk)" stroke="var(--ink)" stroke-width="1.5"/>
+        <circle cx="180" cy="100" r="46" fill="none" stroke="var(--ink)" stroke-width="1"/>
+        <circle cx="180" cy="100" r="26" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+        <circle cx="84" cy="100" r="9" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/><circle cx="276" cy="100" r="9" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+        <line x1="156" y1="100" x2="204" y2="100" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#am2)" marker-end="url(#am2)"/>
+        <circle cx="180" cy="84" r="10" fill="var(--accent)"/><text x="180" y="88.5" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-ink)">1</text>
+        <line x1="84" y1="190" x2="276" y2="190" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#am2)" marker-end="url(#am2)"/>
+        <line x1="84" y1="112" x2="84" y2="196" stroke="var(--accent)" stroke-width=".8"/><line x1="276" y1="112" x2="276" y2="196" stroke="var(--accent)" stroke-width=".8"/>
+        <circle cx="180" cy="190" r="10" fill="var(--accent)"/><text x="180" y="194.5" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-ink)">2</text>
+        <defs><marker id="am2" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L8 4 L0 7 Z" fill="var(--accent)"/></marker></defs>
+      </svg>
+      <svg class="draw" data-pic="Piloted flange" hidden viewBox="0 0 360 200" role="img" aria-label="Where to measure on a piloted flange: 1 shaft size, 2 pilot diameter on the back, 3 bolt circle">
+        <circle cx="180" cy="100" r="86" fill="var(--sunk)" stroke="var(--ink)" stroke-width="1.5"/>
+        <circle cx="180" cy="100" r="56" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 3"/>
+        <circle cx="180" cy="100" r="24" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+        <circle cx="129" cy="49" r="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/><circle cx="231" cy="49" r="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/><circle cx="129" cy="151" r="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/><circle cx="231" cy="151" r="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+        <line x1="158" y1="100" x2="202" y2="100" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#amp)" marker-end="url(#amp)"/>
+        <circle cx="180" cy="86" r="10" fill="var(--accent)"/><text x="180" y="90.5" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-ink)">1</text>
+        <line x1="124" y1="124" x2="236" y2="124" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#amp)" marker-end="url(#amp)"/>
+        <circle cx="180" cy="124" r="10" fill="var(--accent)"/><text x="180" y="128.5" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-ink)">2</text>
+        <line x1="129" y1="49" x2="231" y2="151" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#amp)" marker-end="url(#amp)"/>
+        <circle cx="248" cy="70" r="10" fill="var(--accent)"/><text x="248" y="74.5" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-ink)">3</text>
+        <text x="300" y="190" text-anchor="middle" font-size="10" style="fill:var(--muted)">dashed = pilot (back side)</text>
+        <defs><marker id="amp" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L8 4 L0 7 Z" fill="var(--accent)"/></marker></defs>
+      </svg>
+      <div class="field"><label class="label" for="dBore"><span class="dn">1</span> · Shaft size <span class="unitL"></span></label><div class="inrow"><input id="dBore" autocomplete="off" inputmode="decimal" placeholder="Optional, e.g. 1"><div class="seg useg" role="group" aria-label="Units for this search"><button type="button" data-u="in" aria-pressed="true">in</button><button type="button" data-u="mm" aria-pressed="false">mm</button></div></div><span class="note">Measure across the shaft.</span></div>
+      <div class="field" id="fH"><label class="label" for="dH"><span class="dn">2</span> · Base to center <span class="unitL"></span></label><div class="inrow"><input id="dH" autocomplete="off" inputmode="decimal" placeholder="e.g. 1-7/16"><div class="seg useg" role="group" aria-label="Units for this search"><button type="button" data-u="in" aria-pressed="true">in</button><button type="button" data-u="mm" aria-pressed="false">mm</button></div></div><span class="note">From the surface the bearing sits on up to the middle of the shaft.</span></div>
+      <div class="field" id="fP" hidden><label class="label" for="dP"><span class="dn">2</span> · Pilot diameter <span class="unitL"></span></label><div class="inrow"><input id="dP" autocomplete="off" inputmode="decimal" placeholder="e.g. 4-1/2"><div class="seg useg" role="group" aria-label="Units for this search"><button type="button" data-u="in" aria-pressed="true">in</button><button type="button" data-u="mm" aria-pressed="false">mm</button></div></div><span class="note">The round step on the back of the flange that fits into the machine. Measure straight across it.</span></div>
+      <div class="field"><label class="label" for="dJ"><span class="dn" id="dJn">3</span> · <span id="dJlabel">Bolt centers</span> <span class="unitL"></span></label><div class="inrow"><input id="dJ" autocomplete="off" inputmode="decimal" placeholder="e.g. 4-1/8"><div class="seg useg" role="group" aria-label="Units for this search"><button type="button" data-u="in" aria-pressed="true">in</button><button type="button" data-u="mm" aria-pressed="false">mm</button></div></div><span class="note" id="dJnote">From the middle of one mounting bolt to the middle of the other.</span></div>
+      <div class="field"><label class="label" for="dType"><span id="dTn">4</span> · Bearing type</label><select id="dType"><option value="">Any / not sure</option><option>Ball</option><option>Spherical roller</option><option>Tapered roller</option><option>Cylindrical roller</option></select><span class="note">Optional. Leave on "Any" if you're not sure.</span></div>
+      <button class="btn accent" id="dGo" style="justify-self:start;font-size:16px;padding:12px 20px">Find matching parts →</button>
+      <p class="note" style="margin:0">Decimals or fractions both work: <span class="num">1.4375</span>, <span class="num">1-7/16</span>, <span class="num">4 1/8</span>.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="refhead"><h2>Parts that fit</h2></div>
+      <div id="dimBody"><div class="empty">Fill in any measurement you have to see matching parts.</div></div>
+      <details id="dimNearWrap" hidden>
+        <summary>Close matches. Double-check your measurements <span id="dimNearCount" class="pill warn"></span></summary>
+        <div id="dimNearBody" style="margin-top:10px;display:grid;gap:12px"></div>
+      </details>
+    </div>
+  </section>
+
+  <!-- CATALOG -->
+  <section id="v-cat" class="panel" hidden>
+    <div class="refhead"><h2>Catalog</h2><span id="catCount" class="pill muted"></span></div>
+    <div id="roNote" class="note" hidden>This is a read-only copy of the catalog. <span id="asOf"></span></div>
+    <details id="addWrap">
+      <summary id="addSummary">Add a part</summary>
+      <form id="addForm" class="panel" style="margin-top:10px;background:var(--bg)">
+        <p class="note" style="margin:0">Only the part number is required. Fill in whatever sizes you know; you can add the rest later. Parts with missing sizes show up as "Might fit" until they're complete.</p>
+        <div class="row">
+          <div class="field"><label class="label" for="fPn">Part number</label><input id="fPn" required></div>
+          <div class="field"><label class="label" for="fBrand">Brand</label><input id="fBrand" placeholder="Optional"></div>
+          <div class="field"><label class="label" for="fSeries">Series / housing</label><input id="fSeries" placeholder="UCP200"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label class="label" for="fBore">Bore <span class="unitL"></span></label><input id="fBore" inputmode="decimal" placeholder="If known"></div>
+          <div class="field"><label class="label" for="fH">Base to center <span class="unitL"></span></label><input id="fH" inputmode="decimal" placeholder="If known"></div>
+          <div class="field"><label class="label" for="fJmin">Bolt centers min <span class="unitL"></span></label><input id="fJmin" inputmode="decimal" placeholder="If known"></div>
+          <div class="field"><label class="label" for="fJmax">Bolt centers max <span class="unitL"></span></label><input id="fJmax" inputmode="decimal" placeholder="same as min if fixed"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label class="label" for="fMount">Mounting</label><select id="fMount"><option>Pillow block</option><option>4-bolt flange</option><option>2-bolt flange</option><option>Piloted flange</option></select></div>
+          <div class="field"><label class="label" for="fFace">Mount face to bearing center <span class="unitL"></span></label><input id="fFace" inputmode="decimal" placeholder="Flanges only"></div>
+          <div class="field"><label class="label" for="fBolt">Bolt size</label><input id="fBolt" placeholder="1/2″ or M14"></div>
+          <div class="field"><label class="label" for="fBw">Length through bore <span class="unitL"></span></label><input id="fBw" inputmode="decimal" placeholder="e.g. Bi in IPTCI catalogs"></div>
+          <div class="field"><label class="label" for="fHw">Housing base width <span class="unitL"></span></label><input id="fHw" inputmode="decimal" placeholder="If known"></div>
+          <div class="field"><label class="label" for="fLock">Locking</label><input id="fLock" placeholder="e.g. Set screw"></div>
+          <div class="field"><label class="label" for="fType">Bearing type</label><input id="fType" placeholder="e.g. Ball, Spherical roller"></div>
+          <div class="field" style="flex:3 1 240px"><label class="label" for="fNotes">Notes</label><input id="fNotes" placeholder="Locking type, seals…"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label class="label" for="fSrcType">Where the sizes came from</label><select id="fSrcType"><option value="catalog">Manufacturer catalog (file)</option><option value="website">Manufacturer's official website</option><option value="other">Other / not sure</option></select></div>
+          <div class="field" style="flex:3 1 240px"><label class="label" for="fSrc">Catalog name and page, or manufacturer web address</label><input id="fSrc" placeholder="e.g. Dodge Mounted Bearings Catalog, p. B-12"></div>
+        </div>
+        <div class="actions"><button type="button" class="btn ghost" id="fCancel" hidden>Cancel edit</button><button class="btn accent" id="fSave">Save part</button></div>
+      </form>
+    </details>
+    <details>
+      <summary>Import from CSV</summary>
+      <div style="display:grid;gap:8px;margin-top:10px">
+        <p class="note" style="margin:0">Paste rows with a header line. Columns: <span class="num">part_number, brand, series, bore, base_to_center, bolt_min, bolt_max, mount_type, bolt_size, locking, bearing_type, length_through_bore, face_to_center, housing_width, notes, source_type, source</span>. Values are read in the units selected above. <span class="num">source_type</span> is <span class="num">catalog</span>, <span class="num">website</span> or <span class="num">other</span>; a row counts as verified only with catalog or website plus a <span class="num">source</span>. Only <span class="num">part_number</span> is required; leave a cell empty if you don't know that size. Rows with the same brand and part number overwrite the existing entry.</p>
+        <textarea id="csvIn" spellcheck="false" placeholder="part_number,brand,series,bore,base_to_center,bolt_min,bolt_max,bolt_size,notes&#10;P2B-SC-100,Dodge,SC,1,1.4375,3.75,4.5,1/2,from catalog p. B-12"></textarea>
+        <div class="actions"><span id="csvMsg" class="note" style="margin-right:auto;align-self:center"></span><button class="btn" id="csvGo">Import rows</button></div>
+      </div>
+    </details>
+    <details>
+      <summary>Nomenclature guides <span id="guideCount" class="pill muted"></span></summary>
+      <div id="guideBody" style="display:grid;gap:8px;margin-top:10px"></div>
+    </details>
+    <div class="row"><input id="catFilter" placeholder="Filter by part number, brand or series"></div>
+    <div id="catBody"></div>
+  </section>
+
+</div>
+<div id="toast" class="toast" hidden></div>
+
+<div class="buddy" id="buddy" aria-live="polite"><div class="bubble" id="buddyMsg">Hey man, I found a match!</div><button type="button" id="buddyBtn" aria-label="Dismiss"><img alt="" src="data:image/webp;base64,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"></button></div>
+<script>
+const MM = 25.4;
+const TOL_H = 0.010;      // inch, base-to-center height tolerance
+const TOL_BORE = 0.002;   // inch
+const NEAR_H = 0.125, NEAR_J = 0.25; // "close" thresholds (inch)
+let units = "in";
+try { units = localStorage.getItem("pbc-units") || "in"; } catch(e) {}
+let parts = [];          // [{id, ...}]
+let db = null, canWrite = false, editingId = null, currentRef = null;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- units & formatting ---------- */
+function frac(v){ // nearest 1/64 if close, as 1-5/16
+  const n = Math.round(v*64);
+  if (Math.abs(v - n/64) > 0.0015) return null;
+  let w = Math.floor(n/64), r = n%64, d = 64;
+  if (!r) return `${w}″`;
+  while (r%2===0){ r/=2; d/=2; }
+  return w ? `${w}-${r}/${d}″` : `${r}/${d}″`;
+}
+function fmt(inch, opts={}){
+  if (inch == null || isNaN(inch)) return "—";
+  if (units === "mm") return (inch*MM).toFixed(opts.mmDp ?? 1) + " mm";
+  return inch.toFixed(opts.dp ?? 3) + "″";
+}
+const kn = v => typeof v === "number" && isFinite(v);
+function fmtBore(inch){
+  if (!kn(inch) || inch <= 0) return "—";
+  if (units === "mm") return (inch*MM).toFixed(inch*MM % 1 < .05 || inch*MM % 1 > .95 ? 0 : 2) + " mm";
+  return frac(inch) || inch.toFixed(4) + "″";
+}
+function sub(inch){ // secondary display in the other unit
+  if (!kn(inch)) return "";
+  if (units === "mm") return frac(inch) || inch.toFixed(3) + "″";
+  return (inch*MM).toFixed(1) + " mm";
+}
+function parseLen(s){ // accepts 1.4375, 1-7/16, 1 7/16, 7/16, values in current units
+  s = String(s ?? "").trim().replace(/[″"]|mm|in/gi,"").trim();
+  if (!s) return null;
+  let v;
+  const m = s.match(/^(\d+)?[\s-]*(\d+)\/(\d+)$/);
+  if (m) v = (+(m[1]||0)) + (+m[2])/(+m[3]);
+  else v = parseFloat(s);
+  if (isNaN(v)) return null;
+  return units === "mm" ? v/MM : v;
+}
+const unitLabel = () => units === "mm" ? "(mm)" : "(in)";
+
+/* ---------- matching ---------- */
+// Each check is true (matches), false (doesn't) or null (size not on file for one of the parts).
+const MOUNTS = ["Pillow block", "4-bolt flange", "2-bolt flange", "Piloted flange"];
+const mountOf = p => p.mount_type || "Pillow block";
+const isFlange = p => mountOf(p) !== "Pillow block";
+const isPiloted = p => mountOf(p) === "Piloted flange";
+// Pillow block series whose catalog page shows a 2-bolt base (drawing with one bolt per foot, no cross-bolt spacing),
+// checked page by page against the manufacturer catalogs on file. SealMaster MSPD: its nomenclature table says four-bolt
+// but its series page shows two-bolt; IPCD confirmed all MSPD sizes on the shelf are two-bolt (Nov 2026).
+// Browning SSPS/SSRPS stamped steel: IPCD confirmed all sizes on the shelf are two-bolt (Nov 2026). NTN UCP200: IPCD confirmed all sizes are two-bolt (Nov 2026).
+const SERIES_BOLTS = {
+  "AMI|UCP200 set screw locking pillow block, cast iron": 2,
+  "FYH|UCP200 pillow block, cylindrical bore with set screws": 2,
+  "IPTCI|UCP pillow block, standard duty, cast iron": 2,
+  "SealMaster|MSPD Series Medium Duty Pillow Blocks With Double Lock - Setscrew Locking": 2,
+  "Browning|SSPS 100 Series Light Duty Stamped Steel Pillow Blocks - Setscrew Locking": 2,
+  "Browning|SSRPS 100 Series Light Duty Stamped Steel with Rubber Grommet Pillow Blocks - Setscrew Locking": 2,
+  "NTN|UCP200 cast iron": 2,
+  "AMI|UCPX medium duty set screw locking pillow block, cast iron": 2,
+  "Browning|VPB 200 Series Standard Duty Pillow Blocks - BOA Concentric Locking": 2,
+  "Browning|VPB 300 Series Medium Duty Pillow Blocks - BOA Concentric Locking": 2,
+  "Browning|VPDS 200 Series Standard Duty Pillow Blocks - Setscrew Locking": 2,
+  "Browning|VPE 100 Series Intermediate Duty Pillow Blocks - Eccentric Locking": 2,
+  "Browning|VPE 200 Series Standard Duty Pillow Blocks - Eccentric Locking": 2,
+  "Browning|VPLB 200 Series Standard Duty Low Base Pillow Blocks - BOA Concentric Locking": 2,
+  "Browning|VPLE 100 Series Intermediate Duty Low Base Pillow Blocks - Eccentric Locking": 2,
+  "Browning|VPLE 200 Series Standard Duty Low Base Pillow Blocks - Eccentric Locking": 2,
+  "Browning|VPLS 100 Series Intermediate Duty Low Base Pillow Blocks - Setscrew Locking": 2,
+  "Browning|VPLS 200 Series Standard Duty Low Base Pillow Blocks - Setscrew Locking": 2,
+  "Browning|VPS 100 Series Intermediate Duty Pillow Blocks - Setscrew Locking": 2,
+  "Browning|VPS 100-M Series Intermediate Duty Ductile Iron Pillow Blocks - Setscrew Locking": 2,
+  "Browning|VPS 200 Series Standard Duty Pillow Blocks - Setscrew Locking - Inch": 2,
+  "Browning|VPS 300 Series Medium Duty Pillow Blocks - Setscrew Locking": 2,
+  "FYH|NAP pillow block E-type, cylindrical bore": 2,
+  "FYH|NAP pillow block, cylindrical bore": 2,
+  "FYH|NCP pillow block, cylindrical bore": 2,
+  "FYH|UCP pillow block, cylindrical bore (with set screws)": 2,
+  "FYH|UCPX pillow block, cylindrical bore with set screws": 2,
+  "IPTCI|UCPX pillow block, medium duty, cast iron": 2,
+  "PTI|BS 200 PTI Series, pressed steel pillow block": 2,
+  "PTI|BSR 200 PTI Series, pressed steel pillow block with rubber isolator": 2,
+  "PTI|CLP 200 PTI Series, pillow block": 2,
+  "PTI|CLRAK 200 PTI Series, pillow block": 2,
+  "PTI|CUCNP 200 PTI Series, corrosion resistant - nickel plated pillow block": 2,
+  "PTI|CUCSP 200 PTI Series, corrosion resistant - stainless steel pillow block": 2,
+  "PTI|CUCTP 200 PTI Series, corrosion resistant - thermoplastic pillow block": 2,
+  "PTI|GSHP 200 PTI Series, pillow block": 2,
+  "PTI|RAK 200 PTI Series, pillow block": 2,
+  "PTI|RAKH 200 PTI Series, pillow block": 2,
+  "PTI|RAKHL 200 PTI Series, pillow block": 2,
+  "PTI|SHCSP 200 PTI Series, stainless steel pillow block": 2,
+  "PTI|SHCTP 200 PTI Series, thermoplastic pillow block": 2,
+  "PTI|SUCSP 200 PTI Series, stainless steel pillow block": 2,
+  "PTI|SUCTP 200 PTI Series, thermoplastic pillow block": 2,
+  "PTI|SW 200 PTI Series, pillow block": 2,
+  "PTI|UCP 200 PTI series, normal duty, cast iron, set screw": 2,
+  "PTI|UCP 300 PTI Series, pillow block": 2,
+  "PTI|UCPX PTI series, medium duty, cast iron, set screw": 2,
+  "PTI|UCPXL PTI series (PXL low center height housing), medium duty, cast iron, set screw": 2,
+  "PTI|UKP 200 PTI Series, pillow block": 2,
+  "PTI|UP 000 PTI Series / KP 000 PTI Series, light duty pillow block": 2,
+  "PTI|VAK 200 PTI Series, pillow block": 2,
+  "SealMaster|MP Series Medium Duty Pillow Blocks - Setscrew Locking": 2,
+  "SealMaster|MP-T Series Medium Duty Pillow Blocks - SKWEZLOC Locking Collar": 2,
+  "SealMaster|MPD Series Medium Duty Pillow Blocks With Double Lock - Setscrew Locking": 2,
+  "SealMaster|NP Series Standard Duty Pillow Blocks - Setscrew Locking": 2,
+  "SealMaster|NP-T Series Standard Duty Pillow Block - SKWEZLOC Locking Collar - Inch": 2,
+  "SealMaster|NP-T Series Standard Duty Pillow Block - SKWEZLOC Locking Collar - Metric -SKWEZTM": 2,
+  "SealMaster|NPD Series Standard Duty Pillow Blocks With Double Lock - Setscrew Locking": 2,
+  "SealMaster|NPL Series Standard Duty Pillow Blocks - Setscrew Locking": 2,
+  "SealMaster|NPL-T Series Standard Duty Pillow Block - SKWEZLOC Locking Collar": 2,
+  "SealMaster|NPMH Series Standard Duty Pillow Block - Setscrew Locking": 2,
+  "SealMaster|NPMH-T Series Standard Duty Pillow Block - Skwezloc Locking Collar": 2,
+  "SealMaster|SP Series Standard Duty Pillow Blocks - Setscrew Locking": 2,
+  "SealMaster|SP-T Series Standard Duty Pillow Blocks - SKWEZLOC Locking Collar": 2,
+  "SealMaster|SPD Series Standard Duty Pillow Blocks With Double Lock - Setscrew Locking": 2,
+  "SealMaster|SPM Series Medium Duty Pillow Blocks - Setscrew Locking": 2
+};
+const SERIES_BOLTS_SRC = {"AMI": "AMI catalog pp. 3 and 13 drawings", "IPTCI": "IPTCI catalog UCP and UCPX page drawings", "FYH": "FYH CAT.NO.3330 pp. 82-84 drawings", "PTI": "PTI catalog series page drawing", "Browning": "Regal catalog MCC-9391 series page drawing", "SealMaster": "Regal catalog MCC-9391 series page drawing"};
+const SERIES_BOLTS_NOTE = {"NTN|UCP200 cast iron": "IPCD shelf check, all sizes", "Browning|SSPS 100 Series Light Duty Stamped Steel Pillow Blocks - Setscrew Locking": "IPCD shelf check, all sizes", "Browning|SSRPS 100 Series Light Duty Stamped Steel with Rubber Grommet Pillow Blocks - Setscrew Locking": "IPCD shelf check, all sizes", "SealMaster|MSPD Series Medium Duty Pillow Blocks With Double Lock - Setscrew Locking": "IPCD shelf check, all sizes; Regal catalog p. G-44 drawing"};
+const boltSrc = p => SERIES_BOLTS_NOTE[(p.brand || "") + "|" + (p.series || "")] || SERIES_BOLTS_SRC[p.brand] || "catalog drawing";
+const seriesBolts = p => SERIES_BOLTS[(p.brand || "") + "|" + (p.series || "")] || null;
+// Bolt count from the record's bolt_holes, the manufacturer's own series name ("4-bolt", "two-bolt"), or the catalog check above. Unknown stays null.
+const boltCount = p => p.bolt_holes || (/4-bolt|four-bolt/i.test(p.series || "") ? 4 : /2-bolt|two-bolt/i.test(p.series || "") ? 2 : null) || seriesBolts(p);
+const typeFam = p => String(p.bearing_type || "").trim().toLowerCase();
+// A part that bolts up but is a different kind of bearing (ball vs roller) or a different bolt count is never a green fit.
+function kindDiffs(ref, c){
+  const out = [];
+  const a = typeFam(ref), b = typeFam(c);
+  if (a && b && a !== b) out.push("type");
+  if (ref.id !== "__probe"){ const x = boltCount(ref), y = boltCount(c); if (x && y && x !== y) out.push("bolts"); }
+  return out;
+}
+const kindLabel = d => d.includes("type") && d.includes("bolts") ? "Different bearing type and bolt count" : d.includes("type") ? "Different bearing type" : "Different bolt count";
+// Locking families: catalogs word the same mechanism differently, so compare by type, not exact text.
+function lockFam(x){
+  const t = String(x || "").toLowerCase();
+  if (!t.trim()) return "";
+  if (/clamp/.test(t)) return "clamping rings";
+  if (/v-?lock/.test(t)) return "V-lock";
+  if (/grip tight|thin wall adapter/.test(t)) return "Grip Tight adapter";
+  if (/adapter|locknut/.test(t)) return "tapered adapter";
+  if (/eccentric/.test(t)) return "eccentric collar";
+  if (/concentric/.test(t)) return "concentric collar";
+  if (/locking collar/.test(t)) return "locking collar";
+  if (/set ?screw/.test(t)) return "set screw";
+  return t.trim();
+}
+// Piloted flanges: the pilot has to fit the same bore in the machine frame, so pilot diameters must agree within 0.005".
+const TOL_PILOT = 0.005;
+// Bolt holes: a difference under 0.05" is treated as measuring/rounding error (owner's rule), for pillow block
+// slots, flange bolt patterns and piloted bolt circles alike.
+const BOLT_TOL = 0.05;
+const FLANGE_BOLT_TOL = BOLT_TOL;
+function compare(ref, c){
+  const flange = isFlange(ref) && isFlange(c);
+  const boreK = kn(ref.bore_in) && ref.bore_in > 0 && kn(c.bore_in) && c.bore_in > 0;
+  const hK = kn(ref.height_in) && kn(c.height_in);
+  const jK = kn(ref.bolt_min_in) && kn(c.bolt_min_in);
+  const jmax = p => kn(p.bolt_max_in) ? p.bolt_max_in : p.bolt_min_in;
+  const dH = hK ? c.height_in - ref.height_in : 0;
+  const lo = jK ? Math.max(ref.bolt_min_in, c.bolt_min_in) : null, hi = jK ? Math.min(jmax(ref), jmax(c)) : null;
+  const gap = jK ? lo - hi : -1; // >0 means no overlap by that much
+  return {
+    boreOk: boreK ? Math.abs(ref.bore_in - c.bore_in) <= TOL_BORE : null,
+    heightOk: flange ? true : hK ? Math.abs(dH) <= TOL_H : null,
+    boltOk: jK ? gap < BOLT_TOL : null,
+    dH: flange ? 0 : dH, gap, lo: jK && lo > hi ? lo : lo, hi: jK && lo > hi && gap < BOLT_TOL ? lo : hi, flange,
+    piloted: isPiloted(ref) && isPiloted(c),
+    pilotOk: isPiloted(ref) && isPiloted(c) ? (kn(ref.pilot_dia_in) && kn(c.pilot_dia_in) ? Math.abs(ref.pilot_dia_in - c.pilot_dia_in) <= TOL_PILOT : null) : true,
+    dP: kn(ref.pilot_dia_in) && kn(c.pilot_dia_in) ? c.pilot_dia_in - ref.pilot_dia_in : 0
+  };
+}
+function status(r, ignoreBore){
+  const v = ignoreBore ? [r.heightOk, r.boltOk, r.pilotOk] : [r.boreOk, r.heightOk, r.boltOk, r.pilotOk];
+  if (v.includes(false)) return "no";
+  if (v.every(x => x === true)) return "fit";
+  return v.includes(true) ? "maybe" : "unknown";
+}
+const isVerified = p => p.verified === true;
+let verifiedOnly = false;
+const pool = () => verifiedOnly ? parts.filter(isVerified) : parts;
+// Parts on IPCD's stock list (stocked:true, stock_pn = IPCD's own number): tagged and listed first.
+const isStockFlange = p => p.stocked === true;
+const isUcflSmall = p => /^FYH$/i.test(p.brand || "") && /^UCFL20[1-3]/i.test(p.part_number || "");
+// FYH UCFL201-203: the standard and E-type housings look alike but the bolt spacing differs (90 mm vs 76.2 mm).
+const ucflNote = (p, compact) => !isUcflSmall(p) ? "" : compact
+  ? `<div class="note" style="margin:4px 0 0;color:var(--warn)"><strong>Check bolt spacing:</strong> standard UCFL201–203 is 3.54″, E-type is 3.00″.</div>`
+  : `<div class="askbox" style="border-color:var(--warn);background:var(--warn-soft)"><div><strong>Heads up: two housings for this size.</strong> FYH makes UCFL201–203 in a standard housing (bolt spacing 3.54″ / 90 mm) and an E-type housing (bolt spacing 3.00″ / 76.2 mm). They look alike, so measure bolt to bolt before you pick. The E-type is the one we stock (part numbers ending in E, e.g. UCFL2018EG5).</div></div>`;
+const stockBadge = p => p.stocked === true ? `<span class="vb ok" style="background:var(--accent);color:var(--accent-ink);border-color:var(--accent)">Stocked${p.stock_pn ? ": " + esc(p.stock_pn) : ""}</span> ` : "";
+function srcBadge(p){
+  if (isVerified(p)) return `<span class="vb ok" title="${esc(p.source_ref)}">Verified · ${esc(p.source_type === "website" ? "manufacturer site" : "catalog")}</span>`;
+  return `<span class="vb warn" title="Sizes not taken from a manufacturer catalog or official website">Unverified</span>`;
+}
+function srcLine(p){
+  if (!isVerified(p)) return `<p class="note" style="margin:0">${srcBadge(p)} ${p.source === "sample" ? "Generic industry-standard sizes, not from a manufacturer catalog." : "No manufacturer catalog or website on file for these sizes."} Check the manufacturer's catalog before ordering.</p>`;
+  const ref = /^https?:\/\//i.test(p.source_ref) ? `<a href="${esc(p.source_ref)}" target="_blank" rel="noopener">${esc(p.source_ref)}</a>` : esc(p.source_ref);
+  return `<p class="note" style="margin:0">${srcBadge(p)} Source: ${ref}</p>`;
+}
+const hasDims = p => kn(p.height_in) && kn(p.bolt_min_in);
+function crossFor(ref){
+  const matches = [], near = [], maybe = [], wrongKind = [];
+  for (const c of pool().filter(c => mountOf(c) === mountOf(ref))){
+    if (c.id === ref.id) continue;
+    const r = compare(ref, c), st = status(r);
+    if (st === "fit") (kindDiffs(ref, c).length ? wrongKind : matches).push({c, r});
+    else if (st === "maybe") maybe.push({c, r});
+    else if (r.boreOk && r.pilotOk !== false && ((r.heightOk && r.gap <= NEAR_J) || (r.boltOk && Math.abs(r.dH) <= NEAR_H))) near.push({c, r});
+  }
+  matches.sort((a,b)=> (isStockFlange(b.c) - isStockFlange(a.c)) || a.c.brand.localeCompare(b.c.brand) || a.c.part_number.localeCompare(b.c.part_number));
+  near.sort((a,b)=> Math.abs(a.r.dH)-Math.abs(b.r.dH));
+  maybe.sort((a,b)=> a.c.brand.localeCompare(b.c.brand) || a.c.part_number.localeCompare(b.c.part_number));
+  wrongKind.sort((a,b)=> (isStockFlange(b.c) - isStockFlange(a.c)) || a.c.brand.localeCompare(b.c.brand) || a.c.part_number.localeCompare(b.c.part_number));
+  return {matches, near, maybe, wrongKind};
+}
+
+/* ---------- drawing ---------- */
+function drawing(p){
+  // Elevation view, not to scale: base, housing, bore, H and J dims.
+  const W=360, Hh=210, baseY=168, cx=180;
+  const bore = 30, house = 54;
+  const cy = baseY - 78;
+  const jl = 60, jr = 300;
+  return `<svg class="draw" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Pillow block dimensions for ${esc(p.part_number)}">
+    <line x1="10" y1="${baseY}" x2="${W-10}" y2="${baseY}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 3"/>
+    <path d="M40 ${baseY} L40 ${baseY-20} L${cx-house} ${baseY-20} L${cx-house} ${cy} A${house} ${house} 0 0 1 ${cx+house} ${cy} L${cx+house} ${baseY-20} L320 ${baseY-20} L320 ${baseY} Z" fill="var(--sunk)" stroke="var(--ink)" stroke-width="1.5"/>
+    <circle cx="${cx}" cy="${cy}" r="${bore}" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+    <line x1="${cx-bore-14}" y1="${cy}" x2="${cx+bore+14}" y2="${cy}" stroke="var(--muted)" stroke-dasharray="8 3 2 3"/>
+    <line x1="${cx}" y1="${cy-bore-14}" x2="${cx}" y2="${cy+bore+14}" stroke="var(--muted)" stroke-dasharray="8 3 2 3"/>
+    <rect x="${jl-8}" y="${baseY-20}" width="16" height="20" fill="var(--surface)" stroke="var(--ink)"/>
+    <rect x="${jr-8}" y="${baseY-20}" width="16" height="20" fill="var(--surface)" stroke="var(--ink)"/>
+    <text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="11" font-weight="600">⌀ ${esc(fmtBore(p.bore_in))}</text>
+    <!-- H -->
+    <line x1="${cx+house+8}" y1="${cy}" x2="345" y2="${cy}" stroke="var(--dim)" stroke-width=".8"/>
+    <line x1="338" y1="${cy}" x2="338" y2="${baseY}" stroke="var(--dim)" stroke-width="1.2" marker-start="url(#ar)" marker-end="url(#ar)"/>
+    <text x="332" y="${(cy+baseY)/2-4}" text-anchor="end" font-size="11" fill="var(--dim)" style="fill:var(--dim)">Base to center</text>
+    <text x="332" y="${(cy+baseY)/2+10}" text-anchor="end" font-size="11" font-weight="600" style="fill:var(--dim)">${esc(fmt(p.height_in))}</text>
+    <!-- J -->
+    <line x1="${jl}" y1="${baseY}" x2="${jl}" y2="${baseY+30}" stroke="var(--dim)" stroke-width=".8"/>
+    <line x1="${jr}" y1="${baseY}" x2="${jr}" y2="${baseY+30}" stroke="var(--dim)" stroke-width=".8"/>
+    <line x1="${jl}" y1="${baseY+24}" x2="${jr}" y2="${baseY+24}" stroke="var(--dim)" stroke-width="1.2" marker-start="url(#ar)" marker-end="url(#ar)"/>
+    <rect x="${cx-92}" y="${baseY+16}" width="184" height="16" fill="var(--surface)"/>
+    <text x="${cx}" y="${baseY+28}" text-anchor="middle" font-size="11" font-weight="600" style="fill:var(--dim)">J ${esc(boltRangeText(p))}</text>
+    <defs><marker id="ar" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L8 4 L0 7 Z" fill="var(--dim)"/></marker></defs>
+  </svg>`;
+}
+function boltRangeText(p){
+  if (!kn(p.bolt_min_in)) return "—";
+  if (!kn(p.bolt_max_in) ||Math.abs(p.bolt_max_in - p.bolt_min_in) < 0.0005) return fmt(p.bolt_min_in) + " fixed";
+  return `${fmt(p.bolt_min_in)} – ${fmt(p.bolt_max_in)}`;
+}
+function slotView(ref, c, r){
+  // Overhead (plan) view of the housing base, broken in the middle so both slot ends can be zoomed.
+  if (!kn(ref.bolt_max_in)) ref = {...ref, bolt_max_in: ref.bolt_min_in};
+  if (!kn(c.bolt_max_in)) c = {...c, bolt_max_in: c.bolt_min_in};
+  const W = 224, H = 52, yc = 26, rad = 6, lx0 = 4, lx1 = 92, rx0 = 132, rx1 = 220;
+  const lo = Math.min(ref.bolt_min_in, c.bolt_min_in)/2, hi = Math.max(ref.bolt_max_in, c.bolt_max_in)/2;
+  const pad = Math.max(0.06, (hi - lo) * 0.6), d0 = lo - pad, d1 = hi + pad;
+  const sides = [d => rx0 + (d-d0)/(d1-d0)*(rx1-rx0), d => lx1 - (d-d0)/(d1-d0)*(lx1-lx0)];
+  const stad = (X, a, b, attrs) => { const p = X(a/2), q = X(b/2), x = Math.min(p,q) - rad, w = Math.abs(q-p) + 2*rad;
+    return `<rect x="${x.toFixed(1)}" y="${yc-rad}" width="${w.toFixed(1)}" height="${2*rad}" rx="${rad}" ${attrs}/>`; };
+  let g = "";
+  for (const X of sides){
+    g += stad(X, c.bolt_min_in, c.bolt_max_in, `fill="var(--dim)" fill-opacity=".28" stroke="var(--dim)" stroke-width="1.2"`);
+    if (r.boltOk){
+      g += stad(X, r.lo, r.hi, `fill="var(--ok)" fill-opacity=".55" stroke="none"`);
+      g += `<circle cx="${X((r.lo+r.hi)/4).toFixed(1)}" cy="${yc}" r="3.2" fill="var(--ink)"/>`;
+    }
+    g += stad(X, ref.bolt_min_in, ref.bolt_max_in, `fill="none" stroke="var(--ink)" stroke-width="1.3" stroke-dasharray="3 2"`);
+  }
+  const zig = x => `<path d="M${x} 2 l4 8 l-8 8 l8 8 l-8 8 l8 8 l-4 8" fill="none" stroke="var(--muted)" stroke-width="1"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Top view of bolt slots" style="display:block;max-width:none">
+    <rect x="1" y="4" width="${W-2}" height="${H-8}" rx="3" fill="var(--sunk)" stroke="var(--line)"/>
+    <rect x="${lx1+6}" y="2" width="${rx0-lx1-12}" height="${H-4}" fill="var(--surface)"/>
+    ${zig(lx1+6)}${zig(rx0-6)}
+    <line x1="${(lx1+rx0)/2}" y1="6" x2="${(lx1+rx0)/2}" y2="${H-6}" stroke="var(--muted)" stroke-dasharray="6 2 1.5 2"/>
+    <text x="${(lx1+rx0)/2}" y="${yc+4}" text-anchor="middle" font-size="10" style="fill:var(--muted);font-family:var(--mono)">℄</text>
+    ${g}
+  </svg>`;
+}
+function slotLegend(refName){
+  const sw = (attrs) => `<svg width="26" height="12" viewBox="0 0 26 12" style="vertical-align:-2px"><rect x="1" y="1" width="24" height="10" rx="5" ${attrs}/></svg>`;
+  return `<div class="note" style="display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center">
+    <span>Slots, top view (ends zoomed, middle broken out):</span>
+    <span>${sw('fill="none" stroke="var(--ink)" stroke-width="1.3" stroke-dasharray="3 2"')} ${esc(refName)}</span>
+    <span>${sw('fill="var(--dim)" fill-opacity=".28" stroke="var(--dim)" stroke-width="1.2"')} This part</span>
+    <span>${sw('fill="var(--ok)" fill-opacity=".55"')} Where bolts fit both</span>
+    <span><svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:-2px"><circle cx="6" cy="6" r="3.2" fill="var(--ink)"/></svg> Mid-range bolt</span>
+  </div>`;
+}
+function rangeBar(ref, c, r){
+  const lo = Math.min(ref.bolt_min_in, c.bolt_min_in) - 0.15, hi = Math.max(ref.bolt_max_in, c.bolt_max_in) + 0.15;
+  const x = v => ((v-lo)/(hi-lo)*100).toFixed(2) + "%";
+  const w = (a,b) => (Math.max((b-a)/(hi-lo)*100, .8)).toFixed(2) + "%";
+  return `<div class="bar" title="Grey-blue: reference slots. Blue: candidate slots. Green: overlap.">
+    <span class="r" style="left:${x(ref.bolt_min_in)};width:${w(ref.bolt_min_in, ref.bolt_max_in)};top:1px;bottom:7px"></span>
+    <span class="c" style="left:${x(c.bolt_min_in)};width:${w(c.bolt_min_in, c.bolt_max_in)};top:8px;bottom:1px;opacity:.6"></span>
+    ${r.boltOk ? `<span class="o" style="left:${x(r.lo)};width:${w(r.lo, r.hi)};opacity:.5"></span>` : ""}
+  </div>`;
+}
+
+/* ---------- nomenclature decoding ---------- */
+let decoders = [], decState = {pn:null, dec:null, matches:null, sel:null};
+const normPN = s => String(s ?? "").toUpperCase().replace(/[\s\-\/.]/g, "");
+const boreCodeMM = n => n===0?10 : n===1?12 : n===2?15 : n===3?17 : n*5;
+const FORMATS = {
+  bore_code5: (d, ctx) => {
+    const mm = boreCodeMM(+d);
+    let s = `Bore code ${d} = ${mm} mm` + (ctx.inch ? " nominal size. The inch suffix sets the actual bore." : ` bore (${(mm/MM).toFixed(4)}″).`);
+    if (ctx.insert === "UK") s += " On UK inserts this is the bearing bore; the adapter sleeve sets the shaft size.";
+    return s;
+  },
+  inch16: d => { const v = +d/16; return `Inch bore in sixteenths: ${+d}/16 = ${frac(v) || v.toFixed(4)+"″"} (${(v*MM).toFixed(2)} mm).`; },
+  shaft_inch16: d => {
+    if (d[0] === "0") return `Metric shaft: ${+d} mm.`;
+    const s16 = +d.slice(1);
+    if (s16 > 15) return `Shaft code ${d}. The last two digits should be sixteenths (00–15); check the catalog.`;
+    const v = +d[0] + s16/16;
+    return `Shaft ${frac(v) || v.toFixed(4)+"″"} (${(v*MM).toFixed(1)} mm). First digit is whole inches, last two are sixteenths.`;
+  },
+  timken_series: (d, ctx) => {
+    const n = +d; let s = `Insert size ${d}: 222${d} spherical roller bearing (e.g. 13 = 22213).`;
+    if (ctx.insert_lock === "J" && (n === 30 || n === 34)) s += ` Size ${d} EC-locking units can also use the 232${d} insert.`;
+    if (ctx.insert_lock === "K" && n >= 32) s += ` Size 32 and larger tapered-adapter units can also use the 231${d} insert.`;
+    return s;
+  },
+};
+function parseWith(dec, s){
+  const segs = dec.segments || [];
+  function rec(i, k, inRepeat){
+    if (k === segs.length) return i === s.length ? [] : null;
+    const seg = segs[k], tries = [];
+    if (seg.type === "digits"){ const t = s.slice(i, i+seg.len); if (t.length === seg.len && /^\d+$/.test(t)) tries.push({code:t}); }
+    else for (const c of [...(seg.codes||[])].sort((a,b)=>b.code.length-a.code.length)) if (c.code && s.startsWith(c.code, i)) tries.push(c);
+    for (const t of tries){
+      const r = seg.repeat ? rec(i+t.code.length, k, true) : rec(i+t.code.length, k+1, false);
+      if (r) return [{k, code:t.code, entry:t}, ...r];
+    }
+    if (seg.optional || inRepeat){ const r = rec(i, k+1, false); if (r) return inRepeat ? r : [{k, code:"", entry:null}, ...r]; }
+    return null;
+  }
+  return rec(0, 0, false);
+}
+function decode(pn, brand){
+  const s = normPN(pn); if (!s) return null;
+  const b = String(brand||"").toLowerCase();
+  const order = [...decoders].sort((x,y) => (+((y.brands||[]).some(z=>z.toLowerCase()===b))) - (+((x.brands||[]).some(z=>z.toLowerCase()===b))));
+  for (const dec of order){ const m = parseWith(dec, s); if (m) return {dec, matches:m}; }
+  return null;
+}
+function segMeaning(dec, m, ctx){
+  const seg = dec.segments[m.k];
+  if (!m.code) return seg.blank || "Not specified.";
+  if (seg.type === "codes") return m.entry.meaning;
+  return FORMATS[seg.format] ? FORMATS[seg.format](m.code, ctx) : m.code;
+}
+// Fixed / expansion pair and other part numbers that share this record's mounting.
+function variantBlock(p, compact){
+  const v = Array.isArray(p.variants) ? p.variants : [];
+  if (!v.length) return "";
+  const role = x => (x.role || "").toLowerCase();
+  const exp = v.filter(x => role(x) === "expansion"), fix = v.filter(x => role(x) === "fixed"), other = v.filter(x => !["fixed","expansion"].includes(role(x)));
+  const mainRole = (p.primary_role || "").toLowerCase();
+  const fixed = mainRole === "fixed" ? [p.part_number, ...fix.map(x => x.part_number)] : fix.map(x => x.part_number);
+  const expn = mainRole === "expansion" ? [p.part_number, ...exp.map(x => x.part_number)] : exp.map(x => x.part_number);
+  const chip = pn => `<span class="pn" style="font-size:${compact ? 13 : 15}px">${esc(pn)}</span><button class="btn ghost sm copypn" data-copy="${esc(pn)}" title="Copy part number" style="padding:2px 6px;margin-left:4px">Copy</button>`;
+  let h = "";
+  if (fixed.length || expn.length){
+    h += `<div style="display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center">`
+      + (fixed.length ? `<div><span class="label">${esc(p.fixed_label || "Fixed")}</span> ${fixed.map(chip).join(" ")}</div>` : "")
+      + (expn.length ? `<div><span class="label">${esc(p.expansion_label || "Expansion")}</span> ${expn.map(chip).join(" ")}</div>` : "")
+      + `</div>`;
+  }
+  if (other.length && !compact) h += `<div class="note" style="margin-top:4px">Same mounting, other options: ${other.map(x => `<span class="num">${esc(x.part_number)}</span>${x.note ? " (" + esc(x.note) + ")" : ""}`).join(", ")}</div>`;
+  return h ? `<div class="${compact ? "" : "panel"}" style="${compact ? "margin-top:4px" : "padding:10px 12px;margin:0"}">${h}</div>` : "";
+}
+function decodeBlock(pn, brand){
+  const r = decode(pn, brand);
+  const pill = brand ? `<span class="pill muted">${esc(brand)}</span>` : "";
+  if (!r){
+    decState = {pn:null, dec:null, matches:null, sel:null};
+    return `<div class="refhead"><span class="pn">${esc(pn)}</span>${pill}</div>` +
+      (decoders.length ? `<p class="note" style="margin:0">No nomenclature guide matches this part number yet.</p>` : "");
+  }
+  if (decState.pn !== pn || decState.dec?.id !== r.dec.id) decState = {pn, dec:r.dec, matches:r.matches, sel:null};
+  else decState.matches = r.matches;
+  const visible = r.matches.map((m,i)=>({m,i})).filter(({m}) => m.code || r.dec.segments[m.k].blank);
+  return `<div class="dec">
+    <div class="refhead"><span class="label">Tap a segment to decode it</span>${pill}</div>
+    <div class="chips" role="group" aria-label="Part number segments">${visible.map(({m,i}) => {
+      const seg = r.dec.segments[m.k];
+      return `<button class="chip${m.code?"":" blank"}" data-di="${i}" aria-pressed="${decState.sel===i}" title="${esc(seg.label)}">${esc(m.code || "–")}<small>${esc(seg.short || seg.label)}</small></button>`;
+    }).join("")}</div>
+    <div id="decDetail">${decodeDetail()}</div>
+  </div>`;
+}
+function decodeDetail(){
+  const {dec, matches, sel} = decState; if (!dec) return "";
+  const ctx = {}; matches.forEach(m => { if (m.code) ctx[dec.segments[m.k].key] = m.code; });
+  if (sel == null){
+    return `<div class="decbox"><dl class="kv">${matches.filter(m => m.code || dec.segments[m.k].blank).map(m => {
+      const i = matches.indexOf(m), seg = dec.segments[m.k];
+      return `<dt><button data-di="${i}">${esc(seg.label)}</button></dt><dd><b class="num">${esc(m.code || "(blank)")}</b> · ${esc(segMeaning(dec, m, ctx))}</dd>`;
+    }).join("")}</dl><span class="note">${dec.verified ? '<span class="vb ok">Verified</span>' : '<span class="vb warn">Unverified</span>'} Guide: ${esc(dec.name)}${dec.source ? " · " + esc(dec.source) : ""}</span></div>`;
+  }
+  const m = matches[sel], seg = dec.segments[m.k];
+  const others = seg.type === "codes" ? `<div class="opts">${seg.codes.map(c => `<span class="c${c.code===m.code?" on":""}">${esc(c.code)}</span><span class="${c.code===m.code?"on":""}">${esc(c.meaning)}</span>`).join("")}${seg.blank ? `<span class="c${!m.code?" on":""}">(blank)</span><span class="${!m.code?"on":""}">${esc(seg.blank)}</span>` : ""}</div>` : (seg.help ? `<p class="note" style="margin:0">${esc(seg.help)}</p>` : "");
+  return `<div class="decbox">
+    <div class="refhead"><h3>${esc(seg.label)}: <span class="num">${esc(m.code || "(blank)")}</span></h3><button class="btn ghost sm" data-di="all">Show all</button></div>
+    <div>${esc(segMeaning(dec, m, ctx))}</div>
+    ${seg.type === "codes" ? `<span class="label">All ${esc(seg.label.toLowerCase())} options</span>` : ""}${others}
+  </div>`;
+}
+function renderGuides(){
+  $("#guideCount").textContent = decoders.length;
+  $("#guideBody").innerHTML = decoders.length ? decoders.map(d => `<div class="note"><strong>${esc(d.name)}</strong>${d.example ? ` · e.g. <span class="num">${esc(d.example)}</span>` : ""}<br>${esc(d.source || "")}</div>`).join("")
+    : `<p class="note">No guides loaded.</p>`;
+}
+
+/* ---------- stainless steel question ---------- */
+let matState = {id: null, need: null};
+const isStainless = p => /stainless/i.test(p.series || "") || p.stainless === true;
+function standardVersions(p){
+  // Same brand and shaft size, not stainless. Best first: fits the same mounting, same collar style, closest base to center.
+  const collar = q => /double collar/i.test(q.series || "") ? 2 : /single collar/i.test(q.series || "") ? 1 : 0;
+  return pool().filter(c => c.id !== p.id && mountOf(c) === mountOf(p) && !isStainless(c) && c.brand === p.brand && kn(c.bore_in) && Math.abs(c.bore_in - p.bore_in) <= TOL_BORE)
+    .map(c => ({c, r: compare(p, c)}))
+    .map(x => ({...x, st: status(x.r)}))
+    .sort((a,b) => (a.st === "fit" ? 0 : a.st === "maybe" ? 1 : 2) - (b.st === "fit" ? 0 : b.st === "maybe" ? 1 : 2)
+      || (collar(a.c) === collar(p) ? 0 : 1) - (collar(b.c) === collar(p) ? 0 : 1)
+      || Math.abs(a.r.dH) - Math.abs(b.r.dH));
+}
+function materialBlock(p){
+  if (!isStainless(p)) return "";
+  const q = matState.need;
+  let out = `<div class="askbox">
+    <div><strong>This is a stainless steel unit.</strong> Do you need stainless steel?</div>
+    <div class="yn" role="group" aria-label="Do you need stainless steel?">
+      <button class="ynbtn" data-need="yes" aria-pressed="${q==="yes"}">Yes, I need stainless</button>
+      <button class="ynbtn" data-need="no" aria-pressed="${q==="no"}">No, standard is fine</button>
+    </div>`;
+  if (q === "yes") out += `<p class="note" style="margin:0">Showing stainless steel options only.</p>`;
+  if (q === "no"){
+    const alts = standardVersions(p);
+    const fit = alts.filter(a => a.st === "fit");
+    const show = (fit.length ? fit : alts).slice(0, 3);
+    if (!show.length) out += `<p class="note" style="margin:0">No standard (non-stainless) ${esc(p.brand)} part with a ${esc(fmtBore(p.bore_in))} shaft is in the catalog yet. The results below show any non-stainless part that fits.</p>`;
+    else {
+      out += `<div class="note" style="margin:0">${fit.length ? `Standard version${fit.length>1?"s":""} that fit${fit.length>1?"":"s"} the same mounting:` : `No standard version fits the same mounting. Closest ${esc(p.brand)} option${show.length>1?"s":""} with the same shaft size:`}</div>`;
+      out += show.map(({c, r, st}) => {
+        const why = st === "fit" ? "Same shaft size, base to center and bolt spacing"
+          : [r.heightOk === false && `base to center is ${fmt(Math.abs(r.dH))} ${r.dH > 0 ? "higher" : "lower"}`, r.boltOk === false && `bolt holes off by ${fmt(r.gap)}`, (r.heightOk === null || r.boltOk === null) && "some sizes not on file"].filter(Boolean).join("; ");
+        return `<div class="altrow ${st === "fit" ? "fit" : st === "no" ? "nofit" : "maybe"}">
+          <span class="ck" aria-hidden="true">${st === "fit" ? "✓" : st === "no" ? "✗" : "?"}</span>
+          <div style="min-width:0"><div class="pn">${esc(c.part_number)}</div><div class="sub">${esc(c.series || c.brand)} · ${esc(why)}</div></div>
+          <button class="btn sm ${st === "fit" ? "accent" : "ghost"}" data-load="${esc(c.part_number)}">Look up</button>
+        </div>`;
+      }).join("");
+      out += `<p class="note" style="margin:0">The results below show non-stainless options only.</p>`;
+    }
+  }
+  return out + `</div>`;
+}
+
+/* ---------- views ---------- */
+function refCard(p){
+  const missing = [!(kn(p.bore_in) && p.bore_in > 0) && "shaft size", !isFlange(p) && !kn(p.height_in) && "base to center", isPiloted(p) && !kn(p.pilot_dia_in) && "pilot diameter", !kn(p.bolt_min_in) && (isPiloted(p) ? "bolt circle" : "bolt spacing")].filter(Boolean);
+  const boreSub = !(kn(p.bore_in) && p.bore_in > 0) ? "" : units==="mm" ? frac(p.bore_in)||p.bore_in.toFixed(4)+"″" : (p.bore_in*MM).toFixed(2)+" mm";
+  const q = ($("#pnInput").value || "").trim(), nq = x => String(x || "").toUpperCase().replace(/[\s-]/g,"");
+  const via = Array.isArray(p.interchanges) && nq(q) !== nq(p.part_number) ? p.interchanges.find(i => nq(i.part_number) === nq(q) || (i.alt && nq(i.alt) === nq(q))) : null;
+  const hitV = Array.isArray(p.variants) ? p.variants.find(v => nq(v.part_number) === nq(q)) : null;
+  return `${ucflNote(p)}${hitV ? `<div class="banner" style="border-color:var(--ok)"><strong>${esc(hitV.part_number)}</strong> is listed with <strong>${esc(p.part_number)}</strong>${hitV.role ? " as its " + esc(hitV.role.toLowerCase()) + " version" : ""}${hitV.note ? " (" + esc(hitV.note) + ")" : ""}. Same mounting dimensions.</div>` : ""}${via ? `<div class="banner" style="border-color:var(--ok)"><strong>${esc(via.brand)} ${esc(via.part_number)}</strong> isn't in the catalog by itself, but ${esc(p.brand)} lists it as interchangeable with <strong>${esc(p.part_number)}</strong>. Showing that part.</div>` : ""}${decodeBlock(p.part_number, p.brand)}
+  ${p.stocked === true ? `<div>${stockBadge(p)}</div>` : ""}
+  ${variantBlock(p)}
+  ${isFlange(p) ? (kn(p.bolt_min_in) ? flangeView(p, p, {boltOk:true}, true) : "") : hasDims(p) && kn(p.bore_in) ? drawing(p) : ""}
+  ${missing.length ? `<div class="banner">Not on file yet: <strong>${esc(missing.join(", "))}</strong>. ${Array.isArray(p.interchanges) && p.interchanges.length ? `The matches shown come from ${esc(p.brand)}'s published interchange list.` : `Matches use the sizes that are known, so some results are marked "Might fit". Add the missing sizes on the Catalog tab to firm them up.`}</div>` : ""}
+  <div class="spec">
+    <div><span class="label">Bore</span><b>${esc(fmtBore(p.bore_in))}</b><em>${esc(boreSub)}</em></div>
+    <div><span class="label">Mounting</span><b style="font-size:14px">${esc(mountOf(p))}</b></div>
+    ${isPiloted(p) ? `<div><span class="label">Pilot diameter</span><b>${esc(fmt(p.pilot_dia_in))}</b><em>${esc(sub(p.pilot_dia_in))}</em></div>
+    <div><span class="label">Bolt circle</span><b>${esc(fmt(p.bolt_min_in))}</b><em>${esc(sub(p.bolt_min_in))}</em></div>
+    <div><span class="label">Bolt holes</span><b style="font-size:14px">${esc(boltCount(p) ? String(boltCount(p)) + (!p.bolt_holes && seriesBolts(p) ? " (from " + boltSrc(p) + ")" : "") : "Not on file")}</b></div>`
+    : `${isFlange(p) ? `<div><span class="label">Mount face to bearing center</span><b>${esc(fmt(p.face_to_center_in))}</b><em>${esc(sub(p.face_to_center_in))}</em></div>`
+      : `<div><span class="label">Base to center</span><b>${esc(fmt(p.height_in))}</b><em>${esc(sub(p.height_in))}</em></div>`}
+    <div><span class="label">Bolt centers min</span><b>${esc(fmt(p.bolt_min_in))}</b><em>${esc(sub(p.bolt_min_in))}</em></div>
+    <div><span class="label">Bolt centers max</span><b>${esc(fmt(p.bolt_max_in))}</b><em>${esc(sub(p.bolt_max_in))}</em></div>${isFlange(p) ? "" : `
+    <div><span class="label">Bolt base</span><b style="font-size:14px">${esc(boltCount(p) ? boltCount(p) + "-bolt" + (!p.bolt_holes && seriesBolts(p) && !/bolt/i.test(p.series || "") ? " (from " + boltSrc(p) + ")" : "") : "Not on file")}</b></div>`}`}
+    <div><span class="label">Series</span><b style="font-size:14px">${esc(p.series || "—")}</b></div>
+    <div><span class="label">Bolt size</span><b style="font-size:14px">${esc(p.bolt_size || "—")}</b></div>
+    <div><span class="label">Length through bore</span><b>${esc(fmt(p.bearing_width_in))}</b><em>${esc(sub(p.bearing_width_in))}</em></div>
+    <div><span class="label">Housing base width</span><b>${esc(fmt(p.housing_width_in))}</b><em>${esc(sub(p.housing_width_in))}</em></div>
+    <div><span class="label">Locking</span><b style="font-size:14px">${esc(p.locking || "Not on file")}</b></div>
+    <div><span class="label">Bearing type</span><b style="font-size:14px">${esc(p.bearing_type || "Not on file")}</b></div>
+  </div>
+  ${srcLine(p)}
+  ${p.notes && p.source !== "sample" ? `<p class="note" style="margin:0">${esc(p.notes)}</p>` : ""}`;
+}
+function flangeView(ref, c, r, single){
+  // Front view looking at the mounting face: the part you're replacing dashed, the other part colored.
+  const W = 240, H = 156, cx = 120, cy = 70;
+  const four = mountOf(c) === "4-bolt flange", pil = isPiloted(c);
+  const span = Math.max(ref.bolt_max_in ?? ref.bolt_min_in, c.bolt_max_in ?? c.bolt_min_in);
+  const s = pil ? 104 / span : four ? 76 / span : 180 / (span * 1.35);
+  const shape = (p, attrs) => {
+    const j = p.bolt_min_in * s, hr = 5;
+    if (pil){
+      const n = p.bolt_holes || 4, rr = j / 2;
+      const holes = Array.from({length:n}, (_, i) => { const a = Math.PI/4 + i * 2*Math.PI/n; return `<circle cx="${cx + rr*Math.cos(a)}" cy="${cy + rr*Math.sin(a)}" r="${hr}" ${attrs.hole}/>`; }).join("");
+      const pilot = kn(p.pilot_dia_in) ? `<circle cx="${cx}" cy="${cy}" r="${p.pilot_dia_in*s/2}" fill="none" ${attrs.hole.replace(/fill="[^"]*"/, "")}/>` : "";
+      return `<circle cx="${cx}" cy="${cy}" r="${rr + 11}" ${attrs.body}/>` + pilot + holes;
+    }
+    if (four){
+      const half = j / 2 + 13;
+      const holes = [[-1,-1],[1,-1],[-1,1],[1,1]].map(([x,y]) => `<circle cx="${cx + x*j/2}" cy="${cy + y*j/2}" r="${hr}" ${attrs.hole}/>`).join("");
+      return `<rect x="${cx-half}" y="${cy-half}" width="${2*half}" height="${2*half}" rx="10" ${attrs.body}/>` + holes;
+    }
+    const half = j / 2 + 14, rr = 30;
+    const holes = [-1,1].map(x => `<circle cx="${cx + x*j/2}" cy="${cy}" r="${hr}" ${attrs.hole}/>`).join("");
+    return `<path d="M${cx-half} ${cy-16} Q${cx-half+20} ${cy-rr-20} ${cx} ${cy-rr-22} Q${cx+half-20} ${cy-rr-20} ${cx+half} ${cy-16} L${cx+half} ${cy+16} Q${cx+half-20} ${cy+rr+20} ${cx} ${cy+rr+22} Q${cx-half+20} ${cy+rr+20} ${cx-half} ${cy+16} Z" ${attrs.body}/>` + holes;
+  };
+  const st = single ? "fit" : status(r, ref.id === "__probe" && !(ref.bore_in > 0));
+  const col = single ? "var(--dim)" : st === "fit" && !kindDiffs(ref, c).length ? "var(--ok)" : st === "fit" ? "var(--warn)" : st === "no" ? "var(--bad)" : "var(--warn)";
+  let g = shape(c, {body:`fill="${col}" fill-opacity=".14" stroke="${col}" stroke-width="1.6"`, hole:`fill="var(--surface)" stroke="${col}" stroke-width="2"`});
+  g += `<circle cx="${cx}" cy="${cy}" r="${Math.max(8, (c.bore_in || 1) * s * 0.6)}" fill="var(--surface)" stroke="${col}" stroke-width="1.4"/>`;
+  if (!single) g += shape(ref, {body:`fill="none" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="4 3"`, hole:`fill="none" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="2 2"`});
+  return `<svg class="side" viewBox="0 0 ${W} ${H}" role="img" aria-label="Bolt pattern of ${esc(c.part_number)}">${g}
+    <text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" style="fill:var(--muted);font-family:var(--mono)">${pil ? `${c.bolt_holes || 4}-bolt piloted · bolt circle ${esc(fmt(c.bolt_min_in))}${kn(c.pilot_dia_in) ? " · pilot " + esc(fmt(c.pilot_dia_in)) : ""}` : `${four ? "4-bolt" : "2-bolt"} · bolts ${esc(fmt(c.bolt_min_in))}`}</text></svg>`;
+}
+function sideView(ref, c, r){
+  // Side view: current part as a dashed outline, replacement shaded on top of it.
+  if (!hasDims(ref) || !hasDims(c)) return `<div class="empty" style="padding:12px;font-size:13px">No picture: base to center or bolt spacing isn't on file for ${!hasDims(c) ? "this part" : ref.id === "__probe" ? "your mount" : "the part you're replacing"}.</div>`;
+  if (!kn(ref.bolt_max_in)) ref = {...ref, bolt_max_in: ref.bolt_min_in};
+  if (!kn(c.bolt_max_in)) c = {...c, bolt_max_in: c.bolt_min_in};
+  const W = 240, H = 132, base = 112, cx = 120;
+  const half = Math.max(ref.bolt_max_in, c.bolt_max_in)/2 + 0.5;
+  const tall = Math.max(ref.height_in, c.height_in) * 1.62 + 0.1;
+  const s = Math.min((W/2 - 8)/half, (base - 6)/tall);
+  const shape = p => {
+    const hw = (p.bolt_max_in/2 + 0.45)*s, foot = Math.max(0.28*p.height_in, 0.25)*s, cy = base - p.height_in*s, ped = p.height_in*0.6*s;
+    return {cy, foot, d:`M${cx-hw} ${base} L${cx-hw} ${base-foot} L${cx-ped} ${base-foot} L${cx-ped} ${cy} A${ped} ${ped} 0 0 1 ${cx+ped} ${cy} L${cx+ped} ${base-foot} L${cx+hw} ${base-foot} L${cx+hw} ${base} Z`};
+  };
+  const A = shape(ref), B = shape(c);
+  const st = status(r, ref.id === "__probe" && !(ref.bore_in > 0));
+  const col = st === "fit" && !kindDiffs(ref, c).length ? "var(--ok)" : st === "no" ? "var(--bad)" : "var(--warn)";
+  const shaftR = p => Math.max(4, (p.bore_in || c.bore_in)/2*s);
+  const midRef = r.boltOk ? (r.lo + r.hi)/2 : (ref.bolt_min_in + ref.bolt_max_in)/2;
+  const midC = r.boltOk ? midRef : (c.bolt_min_in + c.bolt_max_in)/2;
+  const bolt = (j, foot, attrs) => [-1, 1].map(sg => `<line x1="${cx + sg*j/2*s}" y1="${base - foot - 5}" x2="${cx + sg*j/2*s}" y2="${base + 4}" ${attrs}/>`).join("");
+  let g = `<path d="${B.d}" fill="${col}" fill-opacity=".16" stroke="${col}" stroke-width="1.6"/>`;
+  g += `<circle cx="${cx}" cy="${B.cy}" r="${shaftR(c)}" fill="${col}" fill-opacity=".35" stroke="${col}" stroke-width="1.4"/>`;
+  g += bolt(midC, B.foot, `stroke="${col}" stroke-width="3" stroke-linecap="round"`);
+  g += `<path d="${A.d}" fill="none" stroke="var(--ink)" stroke-width="1.3" stroke-dasharray="4 3"/>`;
+  g += `<circle cx="${cx}" cy="${A.cy}" r="${shaftR(ref)}" fill="none" stroke="var(--ink)" stroke-width="1.3" stroke-dasharray="3 2"/>`;
+  if (!r.boltOk) g += bolt(midRef, A.foot, `stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="2 2"`);
+  g += `<line x1="8" y1="${A.cy}" x2="${W-8}" y2="${A.cy}" stroke="var(--muted)" stroke-width=".8" stroke-dasharray="8 3 2 3"/>`;
+  if (!r.heightOk) g += `<line x1="8" y1="${B.cy}" x2="${W-8}" y2="${B.cy}" stroke="var(--bad)" stroke-width=".8" stroke-dasharray="8 3 2 3"/>`;
+  return `<svg class="side" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(c.part_number)} drawn over ${esc(ref.part_number)}">
+    <line x1="4" y1="${base}" x2="${W-4}" y2="${base}" stroke="var(--muted)" stroke-width="1.5"/>
+    ${g}
+  </svg>`;
+}
+function matchTable(ref, rows, mode, exact){
+  if (!rows.length) return "";
+  const probe = ref.id === "__probe";
+  const refName = probe ? "your current mount" : "the part you're replacing";
+  const li = (state, title, detail) => `<li class="${state}"><span class="ck" aria-hidden="true">${state==="ok"?"✓":state==="bad"?"✗":state==="unk"?"?":state==="diff"?"!":"•"}</span><span><b>${esc(title)}</b><br><span class="sub">${esc(detail)}</span></span></li>`;
+  const notOnFile = who => `Not on file for ${who}. Check the manufacturer's catalog.`;
+  return `<p class="note" style="margin:0">In each picture the <strong>dashed outline</strong> is ${esc(refName)} and the <strong>colored block</strong> is the other part. Green means it lines up; red shows where it doesn't.</p>
+  <div class="cards">${rows.map(({c, r, ref: R = ref}) => {
+    const st = status(r, probe && !(R.bore_in > 0));
+    const fits = st === "fit";
+    const who = k => !kn(c[k]) || (k === "bore_in" && !(c[k] > 0)) ? "this part" : (probe ? "your mount" : "the part you're replacing");
+    const items = [];
+    if (probe && !(R.bore_in > 0)) items.push(li("info", "Shaft size", kn(c.bore_in) && c.bore_in > 0 ? fmtBore(c.bore_in) : "Not on file"));
+    else if (r.boreOk === null) items.push(li("unk", "Shaft size unknown", notOnFile(who("bore_in"))));
+    else items.push(li(r.boreOk ? "ok" : "bad", r.boreOk ? "Same shaft size" : "Different shaft size", fmtBore(c.bore_in)));
+    if (r.flange) { /* base to center does not apply to flanges */ }
+    else if (R.noH) items.push(li("info", "Base to center", kn(c.height_in) ? fmt(c.height_in) : "Not on file"));
+    else if (r.heightOk === null) items.push(li("unk", "Base to center unknown", notOnFile(who("height_in"))));
+    else if (r.heightOk) items.push(li("ok", "Same base to center", fmt(c.height_in) + " from mounting surface to shaft center"));
+    else items.push(li("bad", `Base to center is ${fmt(Math.abs(r.dH))} ${r.dH > 0 ? "higher" : "lower"}`, r.dH > 0 ? "The shaft would sit too high" : "It would need shims underneath"));
+    if (R.noBolt) items.push(li("info", "Bolt spacing", boltRangeText(c)));
+    else if (r.boltOk === null) items.push(li("unk", "Bolt spacing unknown", notOnFile(who("bolt_min_in"))));
+    else if (r.boltOk){
+      const exact = Math.abs(r.hi - r.lo) < 0.0005;
+      const slack = r.gap > 0.0005 ? ` (off by ${fmt(r.gap)}, within the 0.05″ measuring allowance)` : "";
+      if (r.piloted) items.push(li("ok", probe ? "Matches your bolt circle" : "Bolt circle lines up", `Bolt circle ${fmt(c.bolt_min_in)}${slack}`));
+      else if (r.flange) items.push(li("ok", probe ? "Matches your bolt pattern" : "Bolt pattern lines up", `${mountOf(c)}, bolts ${fmt(c.bolt_min_in)} apart${mountOf(c) === "4-bolt flange" ? " (each side of the square)" : ""}${slack}`));
+      else items.push(li("ok", probe ? "Reaches your bolt holes" : "Bolt holes line up", (exact || r.gap > 0.0005 ? `Bolt spacing ${fmt(r.lo)}` : `Any bolt spacing from ${fmt(r.lo)} to ${fmt(r.hi)} works`) + slack));
+    } else items.push(li("bad", "Bolt holes don't line up", `Off by ${fmt(r.gap)}`));
+    if (r.piloted){
+      if (R.noP) items.push(li("info", "Pilot diameter", kn(c.pilot_dia_in) ? fmt(c.pilot_dia_in) : "Not on file"));
+      else if (r.pilotOk === null) items.push(li("unk", "Pilot diameter unknown", notOnFile(who("pilot_dia_in"))));
+      else if (r.pilotOk) items.push(li("ok", "Same pilot diameter", fmt(c.pilot_dia_in)));
+      else items.push(li("bad", `Pilot is ${fmt(Math.abs(r.dP))} ${r.dP > 0 ? "larger" : "smaller"}`, `${fmt(c.pilot_dia_in)}. It won't seat in the same pilot bore.`));
+    }
+    const extras = [];
+    const kd = kindDiffs(R, c);
+    if (!probe){
+      const x = boltCount(R), y = boltCount(c), what = r.piloted || r.flange ? "bolt holes" : "bolt base";
+      const nm = n => r.piloted || r.flange ? `${n} bolt holes` : `${n}-bolt base`;
+      if (x && y && x !== y) items.push(li("bad", `Different bolt count: ${nm(y)}`, `The part you're replacing has ${r.piloted || r.flange ? x + " bolt holes" : "a " + x + "-bolt base"}. Not a direct replacement.`));
+      else if (x && y) items.push(li("ok", `Same ${nm(y)}`, ""));
+      else if (y || x) items.push(li("unk", `Bolt count can't be compared`, `${y ? "This part: " + nm(y) : "This part: not on file"}. ${x ? "The part you're replacing: " + nm(x) : "Not on file for the part you're replacing"}.`));
+    }
+    for (const [k, name] of (r.piloted ? [["bearing_width_in", "length through bore"]] : r.flange ? [["face_to_center_in", "mount face to bearing center"], ["bearing_width_in", "length through bore"]] : [["bearing_width_in", "length through bore"], ["housing_width_in", "housing base width"]])){
+      const a = R[k], b = c[k], cap = name[0].toUpperCase() + name.slice(1);
+      if (!kn(b)) extras.push(li("unk", `${cap} not on file`, "Check the manufacturer's catalog"));
+      else if (probe || !kn(a)) extras.push(li("info", cap, fmt(b)));
+      else if (Math.abs(a - b) <= 1/32) extras.push(li("ok", `Same ${name}`, fmt(b)));
+      else extras.push(li("diff", `${cap} is ${fmt(Math.abs(b - a))} ${b > a ? "wider" : "narrower"}`, `${fmt(b)}. The part you're replacing: ${fmt(a)}`));
+    }
+    for (const [k, name, list] of [["bearing_type", "bearing type", items], ["locking", "locking", items]]){
+      const a = String(R[k] || "").trim(), b = String(c[k] || "").trim();
+      const cap = name[0].toUpperCase() + name.slice(1);
+      if (!b) list.push(li("unk", `${cap} not on file`, "Check the manufacturer's catalog"));
+      else if (!a) list.push(probe ? li("info", cap, b) : li("unk", `${cap} can't be compared`, `This part: ${b}. Not on file for the part you're replacing (${R.brand}).`));
+      else if (a.toLowerCase() === b.toLowerCase()) list.push(li("ok", `Same ${name}`, b));
+      else if (k === "locking" && lockFam(a) === lockFam(b)) list.push(li("ok", `Same locking type (${lockFam(b)})`, `${b}. The part you're replacing: ${a}`));
+      else if (k === "bearing_type") list.push(li("bad", `Different bearing type: ${b}`, `${probe ? "You picked" : "The part you're replacing is"} ${a}. Not a direct replacement. Load, speed and life ratings differ.`));
+      else list.push(li("diff", `Different ${name}`, `${b}. The part you're replacing: ${a}`));
+    }
+    const wrong = kd.length > 0;
+    const cls = (fits && !wrong ? "fit" : st === "no" || wrong ? "nofit" : "maybe") + (wrong ? " kind" : "") + (exact && fits && !wrong ? " exact" : "");
+    return `<article class="mcard ${cls}">
+      <div class="mhead"><div style="min-width:0"><div class="pn">${esc(c.part_number)}</div><div class="sub">${esc(c.brand)}${c.series ? " · " + esc(c.series) : ""}</div>${variantBlock(c, true)}<div style="margin-top:4px">${stockBadge(c)}${srcBadge(c)}${ucflNote(c, true)}</div></div>
+        <span class="verdict">${wrong ? "✗ " + kindLabel(kd) : fits ? "✓ Fits" : st === "no" ? "✗ Won't fit as-is" : "? Might fit"}</span></div>
+      ${wrong ? `<div class="kindbar">⚠ ${esc(kindLabel(kd))}${fits ? ". The sizes line up, but this is <strong>not the same bearing</strong>." : "."}</div>` : ""}
+      ${r.flange ? flangeView(R, c, r) : sideView(R, c, r)}
+      <ul class="checks">${items.join("")}</ul>
+      <div class="label" style="margin-top:-2px">Also compare (doesn't change the fit)</div>
+      <ul class="checks">${extras.join("")}</ul>
+      ${r.boltOk !== null && !r.flange ? `<details><summary>Bolt slot detail (top view)</summary><div style="overflow-x:auto;margin-top:6px">${slotView(R, c, r)}</div></details>` : ""}
+    </article>`;
+  }).join("")}</div>`;
+}
+function matchTableOld(ref, rows, mode){
+  if (!rows.length) return "";
+  return `${slotLegend(ref.id === "__probe" ? "Your bolt holes" : ref.part_number + " slots")}<div class="tablewrap"><table>
+    <thead><tr><th>Part</th><th>Bore</th><th class="num">Base to center</th><th class="num">Bolt centers</th><th>Slots, top view</th><th>${mode==="near"?"Why not":"Common spacing"}</th></tr></thead>
+    <tbody>${rows.map(({c,r}) => `<tr>
+      <td><div class="pn">${esc(c.part_number)}</div><div class="sub">${esc(c.brand)}${c.series ? " · "+esc(c.series):""}</div></td>
+      <td class="num">${esc(fmtBore(c.bore_in))}</td>
+      <td class="num">${esc(fmt(c.height_in))}<div class="sub">${Math.abs(r.dH) < 0.0005 ? "exact" : (r.dH>0?"+":"−")+esc(fmt(Math.abs(r.dH)))}</div></td>
+      <td class="num">${esc(boltRangeText(c))}</td>
+      <td>${slotView(ref, c, r)}</td>
+      <td>${mode==="near" ? nearWhy(r) : `<span class="pill ok">${esc(Math.abs(r.hi-r.lo)<0.0005 ? fmt(r.lo) : fmt(r.lo)+" – "+fmt(r.hi))}</span>`}</td>
+    </tr>`).join("")}</tbody></table></div>`;
+}
+function nearWhy(r){
+  const out = [];
+  if (!r.heightOk) out.push(`<span class="pill bad">Base to center off ${esc(fmt(Math.abs(r.dH)))}</span>`);
+  if (!r.boltOk) out.push(`<span class="pill bad">Bolts miss by ${esc(fmt(r.gap))}</span>`);
+  return out.join(" ");
+}
+let brandPick = {pn: null, id: null};
+function findAll(q){
+  const k = q.trim().toUpperCase().replace(/\s+/g,"");
+  if (!k) return [];
+  // A record can hold several of the maker's part numbers (fixed/expansion pair, seal options): search all of them.
+  const names = p => [p.part_number, ...(Array.isArray(p.variants) ? p.variants.map(v => v.part_number) : [])].map(x => String(x || "").toUpperCase());
+  let hits = parts.filter(p => names(p).some(x => x.replace(/\s+/g,"") === k));
+  if (!hits.length) hits = parts.filter(p => names(p).some(x => x.replace(/[\s-]/g,"") === k.replace(/-/g,"")));
+  if (!hits.length){
+    // Part numbers a manufacturer lists as its own interchange (e.g. Timken's Type E table lists Dodge, Sealmaster, Browning...)
+    const n = x => String(x || "").toUpperCase().replace(/[\s-]/g,"");
+    const kk = n(k);
+    hits = parts.filter(p => Array.isArray(p.interchanges) && p.interchanges.some(i => n(i.part_number) === kk || (i.alt && n(i.alt) === kk)));
+  }
+  // Best-documented first: verified, then has bearing type, then most sizes on file.
+  const score = p => (isVerified(p) ? 100 : 0) + (p.bearing_type ? 10 : 0) + ["bore_in","height_in","bolt_min_in","bearing_width_in","housing_width_in"].filter(f => kn(p[f])).length;
+  return hits.sort((a,b) => score(b) - score(a) || a.brand.localeCompare(b.brand));
+}
+function findPart(q){
+  const all = findAll(q);
+  if (brandPick.pn === q.trim().toUpperCase()) { const m = all.find(x => x.id === brandPick.id); if (m) return m; }
+  return all[0] || null;
+}
+function brandChooser(q, p){
+  const all = findAll(q);
+  if (all.length < 2) return "";
+  return `<div class="askbox" style="border-color:var(--line)"><div><strong>${esc(p.part_number)} is made by ${all.length} brands.</strong> Which one do you have?</div>
+    <div class="yn">${all.map(x => `<button class="ynbtn" data-brandid="${esc(x.id)}" aria-pressed="${x.id === p.id}">${esc(x.brand)}${isVerified(x) ? "" : " (unverified)"}</button>`).join("")}</div></div>`;
+}
+function runCross(){
+  const q = $("#pnInput").value;
+  const p = findPart(q);
+  currentRef = p || null;
+  if (!q.trim()){ $("#refCard").innerHTML = `<p class="note">Type or pick a part number to see its dimensions.</p>`; $("#resBody").innerHTML = ""; $("#resCount").textContent=""; $("#nearWrap").hidden = true; return; }
+  if (!p){
+    const sugg = parts.filter(x => x.part_number.toUpperCase().includes(q.trim().toUpperCase())).slice(0,8);
+    $("#refCard").innerHTML = `${decodeBlock(q.trim(), "")}<div class="empty"><b class="num">${esc(q)}</b> isn't in the catalog yet, so it can't be crossed.${sugg.length ? `<div style="margin-top:8px">Did you mean: ${sugg.map(s=>`<button class="btn ghost sm pick" data-pn="${esc(s.part_number)}">${esc(s.part_number)} · ${esc(s.brand)}</button>`).join(" ")}</div>`:""}<div style="margin-top:8px">If you can measure the old bearing, <button class="linkbtn" data-goto="dim">find it by measuring</button>. You can also add it on the Catalog tab with whatever sizes you know.</div></div>`;
+    $("#resBody").innerHTML = ""; $("#resCount").textContent=""; $("#nearWrap").hidden = true;
+    return;
+  }
+  if (matState.id !== p.id) matState = {id: p.id, need: null};
+  $("#refCard").innerHTML = brandChooser(q, p) + refCard(p) + materialBlock(p);
+  let {matches, near, maybe, wrongKind} = crossFor(p);
+  if (isStainless(p) && matState.need){
+    const keep = ({c}) => matState.need === "yes" ? isStainless(c) : !isStainless(c);
+    matches = matches.filter(keep); near = near.filter(keep); maybe = maybe.filter(keep); wrongKind = wrongKind.filter(keep);
+  }
+  const pub = Array.isArray(p.interchanges) ? p.interchanges : [];
+  const pubHtml = pub.length ? `<div class="verdictbig fit">✓ ${esc(p.brand)}'s published interchange for ${esc(p.part_number)}</div>
+    <ul class="checks">${pub.map(i => `<li class="ok"><span class="ck" aria-hidden="true">✓</span><span><b>${esc(i.brand)} ${esc(i.part_number)}</b>${i.alt ? `<br><span class="sub">Part no. ${esc(i.alt)}</span>` : ""}</span></li>`).join("")}</ul>
+    <p class="note" style="margin:0">From ${esc(p.source_ref || "the manufacturer's catalog")}. ${esc(p.brand)} states these are dimensionally interchangeable.</p>` : "";
+  // A part with only its shaft size on file can't be matched by fit; don't list every same-bore block as "might fit".
+  if (!kn(p.height_in) && !kn(p.bolt_min_in)) { maybe = []; near = []; wrongKind = []; }
+  $("#resTitle").textContent = `Interchanges for ${p.part_number}`;
+  const total = matches.length + pub.length;
+  $("#resCount").textContent = `${total} match${total===1?"":"es"}`;
+  $("#resCount").className = "pill " + (total ? "ok" : "muted");
+  // Fits are split by locking: same locking type first, then different locking, then locking not on file.
+  const lf = lockFam(p.locking);
+  const sameL = matches.filter(({c}) => lf && lockFam(c.locking) === lf);
+  const diffL = matches.filter(({c}) => lf && lockFam(c.locking) && lockFam(c.locking) !== lf);
+  const unkL = matches.filter(({c}) => !lf || !lockFam(c.locking));
+  const lockBlocks = (diffL.length ? `<details open><summary>Fits, but with a different locking type <span class="pill warn">${diffL.length}</span></summary><div style="display:grid;gap:12px;margin-top:10px"><p class="note" style="margin:0">Same mounting sizes. The bearing locks to the shaft a different way, so check that suits the application.</p>${matchTable(p, diffL, "match")}</div></details>` : "")
+    + (unkL.length ? `<details ${sameL.length || diffL.length ? "" : "open"}><summary>Fits, locking not on file ${lf ? "for these parts" : "for " + esc(p.part_number)} <span class="pill warn">${unkL.length}</span></summary><div style="display:grid;gap:12px;margin-top:10px">${matchTable(p, unkL, "match")}</div></details>` : "");
+  $("#resBody").innerHTML = pubHtml + (pub.length && !matches.length ? "" : matches.length
+    ? (sameL.length ? `<div class="verdictbig fit">✓ Direct replacement${sameL.length===1?"":"s"}, same locking: ${sameL.map(({c}) => `${esc(c.brand)} ${esc(c.part_number)}`).join(", ")}</div>` + matchTable(p, sameL, "match", true)
+       : `<div class="verdictbig nofit">No fit with the same locking type${lf ? ` (${esc(lf)})` : ""}. The parts below fit the mounting.</div>`) + lockBlocks
+    : `<div class="verdictbig nofit">✗ No confirmed replacements found</div><p class="note" style="margin:0">A direct replacement needs the same bearing type, the same bolt count, the same shaft size, the same base to center, and bolt holes that line up.${wrongKind.length ? " Some parts below have the same sizes but are a different kind of bearing. They are not replacements." : ""}${maybe.length ? " The parts below match on every size that's known, but some sizes aren't on file." : ""}${!kn(p.height_in) && !kn(p.bolt_min_in) ? " Base to center and bolt spacing aren't on file for this part, so it can't be matched by size yet." : ""}</p>`);
+  if (wrongKind.length){
+    const nT = wrongKind.filter(({c}) => kindDiffs(p, c).includes("type")).length, nB = wrongKind.filter(({c}) => kindDiffs(p, c).includes("bolts")).length;
+    const why = [nT && `a different bearing type than ${esc(p.part_number)} (${esc(p.bearing_type)})`, nB && `a different number of mounting bolts`].filter(Boolean).join(", or ");
+    $("#resBody").insertAdjacentHTML("beforeend", `<details class="kindwarn"><summary>⚠ Same sizes, but NOT the same bearing <span class="pill bad">${wrongKind.length}</span></summary><div style="display:grid;gap:12px;margin-top:10px"><div class="kindbar">These bolt up with the same shaft size and height, but each one has ${why}. They are not a direct replacement. Don't quote them as an interchange.</div>${matchTable(p, wrongKind, "kind")}</div></details>`);
+  }
+  if (maybe.length) $("#resBody").insertAdjacentHTML("beforeend", `<details ${matches.length ? "" : "open"}><summary>Might fit. Some sizes not on file <span class="pill warn">${maybe.length}</span></summary><div style="display:grid;gap:12px;margin-top:10px">${matchTable(p, maybe, "maybe")}</div></details>`);
+  if (total) buddyPop("x|" + p.id, 250);
+  $("#nearWrap").hidden = !near.length;
+  $("#nearCount").textContent = near.length;
+  $("#nearBody").innerHTML = matchTable(p, near, "near") + `<p class="note">Same bore, but either the base to center is off (needs shims or a different shaft line) or the bolt slots don't reach the existing holes.</p>`;
+}
+function runDim(){
+  const dmount = $("#dMount").value;
+  if (!dmount){ $("#dimBody").innerHTML = `<div class="empty">Choose the mounting type on the left to get started.</div>`; $("#dimNearWrap").hidden = true; return; }
+  const bore = parseLen($("#dBore").value), h = dmount === "Pillow block" ? parseLen($("#dH").value) : null, j = parseLen($("#dJ").value), pd = dmount === "Piloted flange" ? parseLen($("#dP").value) : null;
+  $("#dimNearWrap").hidden = true;
+  if (h == null && j == null && pd == null && bore == null && !$("#dType").value){ dimSearchId++; $("#dimBody").innerHTML = `<div class="empty">Fill in any measurement you have to see matching parts.</div>`; return; }
+  const btype = $("#dType").value;
+  const probe = {id:"__probe", part_number:"Your mount", brand:"", bore_in: bore ?? 0, bearing_type: btype, mount_type: dmount};
+  // A blank measurement matches anything: borrow the candidate's own value for it.
+  const all = pool().filter(c => mountOf(c) === dmount).map(c => {
+    const ref = {...probe, noH: h == null, noBolt: j == null, noP: pd == null,
+      height_in: h ?? c.height_in, bolt_min_in: j ?? c.bolt_min_in, bolt_max_in: j ?? c.bolt_max_in, pilot_dia_in: pd ?? c.pilot_dia_in};
+    return {c, ref, r: compare(ref, c)};
+  }).filter(({r, c}) => (bore == null || r.boreOk !== false) && (!btype || !c.bearing_type || c.bearing_type.toLowerCase() === btype.toLowerCase()));
+  const ib = bore == null;
+  const flangeQ = dmount === "4-bolt flange" || dmount === "2-bolt flange";
+  // Stocked parts first, then by shaft size.
+  const byBore = (a,b)=> (isStockFlange(b.c) - isStockFlange(a.c)) || (a.c.bore_in ?? 99)-(b.c.bore_in ?? 99) || a.c.brand.localeCompare(b.c.brand);
+  const rows = all.filter(({r}) => status(r, ib) === "fit").sort(byBore);
+  const maybe = all.filter(({r}) => status(r, ib) === "maybe").sort(byBore);
+  // Tape-measure slack: within 1/16" on base to center and 1/8" on bolt centers.
+  const near = all.filter(({r}) => status(r, ib) === "no" && r.boreOk !== false && Math.abs(r.dH) <= 0.0625 && r.gap <= 0.125 && Math.abs(r.dP) <= 0.0625)
+    .sort((a,b)=> (isStockFlange(b.c) - isStockFlange(a.c)) || (Math.abs(a.r.dH) + Math.max(a.r.gap,0)) - (Math.abs(b.r.dH) + Math.max(b.r.gap,0)));
+  const what = [btype && `${esc(btype.toLowerCase())} bearing`, bore!=null && `${esc(fmtBore(bore))} shaft`, h!=null && `base to center ${esc(fmt(h))}`, pd!=null && `pilot ${esc(fmt(pd))}`, j!=null && (dmount === "Piloted flange" ? `bolt circle ${esc(fmt(j))}` : `bolts ${esc(fmt(j))} apart`)].filter(Boolean).join(", ");
+  const nStock = rows.filter(({c}) => isStockFlange(c)).length;
+  const askBolt = flangeQ && j == null
+    ? `<div class="askbox" style="border-color:var(--accent)"><div><strong>Measure bolt to bolt to find the stocked flange.</strong> ${dmount === "4-bolt flange" ? "Measure from the middle of one bolt hole to the middle of the next hole along the same side (not corner to corner)." : "Measure from the middle of one bolt hole to the middle of the other."} Bolt spacing narrows the list to the flange that fits your holes.</div><button class="btn accent" id="askBoltGo" style="justify-self:start">Enter bolt to bolt →</button></div>` : "";
+  const mixTypes = [...new Set(rows.map(({c}) => String(c.bearing_type || "").trim()).filter(Boolean))];
+  const typeNote = !btype && mixTypes.length > 1 ? `<div class="kindbar">These fits include ${mixTypes.length} different bearing types (${esc(mixTypes.join(", ").toLowerCase())}). They are not interchangeable with each other. Pick the bearing type to narrow it down.</div>` : "";
+  const stockNote = typeNote + (nStock ? `<p class="note" style="margin:0"><strong>${nStock} stocked option${nStock===1?"":"s"}</strong> listed first.</p>` : "");
+  // Catch numbers that look like the other unit (e.g. 25 typed while set to inches).
+  const raw = [bore, h, j, pd].filter(v => v != null).map(v => units === "mm" ? v*MM : v);
+  const unitNudge = !raw.length ? "" : units === "in" && raw.some(v => v > 20)
+      ? `<div class="askbox" style="border-color:var(--warn)"><div><strong>Those numbers look like millimeters.</strong> The boxes are set to inches.</div><button class="btn ghost" data-setunits="mm" style="justify-self:start">Switch to mm</button></div>`
+    : units === "mm" && raw.every(v => v < 10)
+      ? `<div class="askbox" style="border-color:var(--warn)"><div><strong>Those numbers look like inches.</strong> The boxes are set to millimeters.</div><button class="btn ghost" data-setunits="in" style="justify-self:start">Switch to inches</button></div>` : "";
+  $("#dimBody").innerHTML = unitNudge + askBolt + (rows.length
+    ? `<div class="verdictbig fit">✓ ${rows.length} part${rows.length===1?"":"s"} fit${rows.length===1?"s":""}: ${what}</div>` + stockNote + matchTable(probe, rows, "match", true)
+    : `<div class="verdictbig nofit">✗ No exact fit for ${what}</div><p class="note" style="margin:0">${near.length ? "See the close matches below. A small measuring error can make the difference." : maybe.length ? "" : "Check the measurements, or try leaving a box blank to widen the search."}</p>`);
+  if (maybe.length) $("#dimBody").insertAdjacentHTML("beforeend", `<details ${rows.length ? "" : "open"}><summary>Might fit. Some sizes not on file <span class="pill warn">${maybe.length}</span></summary><div style="display:grid;gap:12px;margin-top:10px">${matchTable(probe, maybe, "maybe")}</div></details>`);
+  // Wait for typing to settle before he pops in.
+  // He comes out once per measuring search; adding more sizes to the same search won't bring him back.
+  if (rows.length) buddyPop("d|" + dimSearchId, 900); else clearTimeout(buddyWait);
+  $("#dimNearWrap").hidden = !near.length;
+  $("#dimNearWrap").open = !rows.length && near.length > 0;
+  $("#dimNearCount").textContent = near.length;
+  $("#dimNearBody").innerHTML = matchTable(probe, near, "near");
+}
+function renderCatalog(){
+  const f = $("#catFilter").value.trim().toLowerCase();
+  const rows = parts.filter(p => !f || [p.part_number,p.brand,p.series].join(" ").toLowerCase().includes(f))
+    .sort((a,b)=> (a.height_in ?? 99)-(b.height_in ?? 99) || (a.bore_in ?? 99)-(b.bore_in ?? 99) || a.brand.localeCompare(b.brand));
+  $("#catCount").textContent = `${parts.length} parts · ${parts.filter(isVerified).length} verified`;
+  $("#catBody").innerHTML = rows.length ? `<div class="tablewrap"><table>
+    <thead><tr><th>Part</th><th>Type</th><th class="num">Bore</th><th class="num">Base to center</th><th class="num">Bolt centers</th><th>Bolt</th><th></th></tr></thead>
+    <tbody>${rows.slice(0, 300).map(p=>`<tr>
+      <td><div class="pn">${esc(p.part_number)}</div><div class="sub">${esc(p.brand)}</div><div style="margin-top:3px">${srcBadge(p)}</div></td>
+      <td>${esc(mountOf(p))}<div class="sub">${esc(p.series||"")}</div></td>
+      <td class="num">${esc(fmtBore(p.bore_in))}</td>
+      <td class="num">${esc(fmt(p.height_in))}</td>
+      <td class="num">${esc(boltRangeText(p))}</td>
+      <td>${esc(p.bolt_size||"")}</td>
+      <td><div class="actions"><button class="btn ghost sm xref" data-id="${esc(p.id)}">Cross</button>${canWrite?`<button class="btn ghost sm edit" data-id="${esc(p.id)}">Edit</button><button class="btn ghost sm del" data-id="${esc(p.id)}">Delete</button>`:""}</div></td>
+    </tr>`).join("")}</tbody></table></div>${rows.length > 300 ? `<p class="note">Showing 300 of ${rows.length} parts. Type in the filter to narrow the list.</p>` : ""}`
+    : `<div class="empty">${parts.length ? "No parts match that filter." : "The catalog is empty. Add a part above or paste a CSV to get started."}</div>`;
+}
+function renderAll(){
+  document.querySelectorAll(".unitL").forEach(e => e.textContent = unitLabel());
+  if ($("#tolText")) $("#tolText").textContent = units==="mm" ? `±${(TOL_H*MM).toFixed(2)} mm` : `±${TOL_H.toFixed(3)}″`;
+  pnIndex = parts.map(p => ({pn: p.part_number, sub: p.brand}))
+    .concat(parts.flatMap(p => (p.interchanges || []).map(x => ({pn: x.part_number, sub: `${x.brand} · ${p.brand} ${p.part_number}`}))))
+    .concat(parts.flatMap(p => (Array.isArray(p.variants) ? p.variants : []).map(v => ({pn: v.part_number, sub: `${p.brand} · ${v.role || "variant"} of ${p.part_number}`}))))
+    .map(x => ({...x, k: String(x.pn || "").toUpperCase().replace(/[\s-]/g, "")}));
+  runCross(); if (activeTab === "cat") renderCatalog();
+  if ($("#dimBody").innerHTML) runDim();
+}
+
+
+/* ---------- match buddy ---------- */
+var buddyKey = "", buddyTimer = null, buddyWait = null, dimSearchId = 0;
+function buddyHide(){ clearTimeout(buddyTimer); $("#buddy").classList.remove("show"); }
+// key = what was searched + what was found, so re-renders of the same result don't pop him again.
+function buddyPop(key, delay){
+  clearTimeout(buddyWait);
+  if (!key){ return; }
+  if (key === buddyKey) return;
+  buddyWait = setTimeout(() => {
+    buddyKey = key;
+    const b = $("#buddy");
+    b.classList.remove("show"); void b.offsetWidth; b.classList.add("show");
+    clearTimeout(buddyTimer); buddyTimer = setTimeout(buddyHide, 4500);
+  }, delay || 0);
+}
+$("#buddyBtn").addEventListener("click", buddyHide);
+
+/* ---------- tabs & units ---------- */
+const tabs = {part:"#v-part", dim:"#v-dim", cat:"#v-cat"};
+let loaded = false, activeTab = "part";
+function showTab(t){
+  activeTab = t;
+  for (const k in tabs){ $("#t-"+k).setAttribute("aria-selected", k===t); $(tabs[k]).hidden = !loaded || k!==t; }
+  if (t === "cat" && loaded) renderCatalog();
+}
+for (const k in tabs) $("#t-"+k).addEventListener("click", () => showTab(k));
+function setUnits(u){
+  units = u; try{ localStorage.setItem("pbc-units", u); }catch(e){}
+  $("#u-in").setAttribute("aria-pressed", u==="in"); $("#u-mm").setAttribute("aria-pressed", u==="mm");
+  document.querySelectorAll(".useg [data-u]").forEach(b => b.setAttribute("aria-pressed", b.dataset.u === u));
+  setDimPlaceholders();
+  renderAll();
+}
+$("#u-in").onclick = () => setUnits("in");
+$("#u-mm").onclick = () => setUnits("mm");
+// The in/mm switch next to each measuring box sets the units for the whole search.
+document.querySelectorAll(".useg [data-u]").forEach(b => b.addEventListener("click", () => {
+  setUnits(b.dataset.u);
+  const inp = b.closest(".inrow").querySelector("input"); if (inp) inp.focus();
+}));
+// Example values in the boxes follow the chosen units.
+const PH = {dBore:["Optional, e.g. 1","Optional, e.g. 25"], dH:["e.g. 1-7/16","e.g. 36.5"], dP:["e.g. 4-1/2","e.g. 114"],
+  dJ:{"Pillow block":["e.g. 4-1/8","e.g. 105"], "4-bolt flange":["e.g. 2-3/4","e.g. 70"], "2-bolt flange":["e.g. 3-7/8","e.g. 98"], "Piloted flange":["e.g. 5-3/8","e.g. 137"]}};
+function setDimPlaceholders(){
+  const k = units === "mm" ? 1 : 0, m = $("#dMount") ? $("#dMount").value : "";
+  for (const id of ["dBore","dH","dP"]) $("#"+id).placeholder = PH[id][k];
+  $("#dJ").placeholder = (PH.dJ[m] || PH.dJ["Pillow block"])[k];
+}
+$("#pnGo").onclick = runCross;
+/* Part number suggestions: a short in-page list instead of a browser datalist with thousands of entries. */
+let pnIndex = [], suggSel = -1, suggT = 0;
+function showSugg(){
+  const box = $("#pnSugg"), q = ($("#pnInput").value || "").toUpperCase().replace(/[\s-]/g, "");
+  suggSel = -1;
+  if (q.length < 2){ box.hidden = true; $("#pnInput").setAttribute("aria-expanded","false"); return; }
+  const starts = [], has = [];
+  for (const x of pnIndex){ if (x.k === q) starts.unshift(x); else if (x.k.startsWith(q)) { if (starts.length < 12) starts.push(x); } else if (has.length < 12 && x.k.includes(q)) has.push(x); }
+  const list = starts.concat(has).slice(0, 12);
+  if (!list.length || (list.length === 1 && list[0].k === q)){ box.hidden = true; $("#pnInput").setAttribute("aria-expanded","false"); return; }
+  box.innerHTML = list.map((x, i) => `<button type="button" role="option" id="sg${i}" aria-selected="false" data-sg="${esc(x.pn)}"><span class="num">${esc(x.pn)}</span><span class="sb">${esc(x.sub)}</span></button>`).join("");
+  box.hidden = false; $("#pnInput").setAttribute("aria-expanded","true");
+}
+function hideSugg(){ clearTimeout(suggT); $("#pnSugg").hidden = true; $("#pnInput").setAttribute("aria-expanded","false"); suggSel = -1; }
+function pickSugg(pn){ $("#pnInput").value = pn; hideSugg(); runCross(); }
+$("#pnInput").addEventListener("input", () => { clearTimeout(suggT); suggT = setTimeout(showSugg, 120); });
+$("#pnInput").addEventListener("blur", () => setTimeout(hideSugg, 150));
+$("#pnSugg").addEventListener("mousedown", e => { const b = e.target.closest("[data-sg]"); if (b){ e.preventDefault(); pickSugg(b.dataset.sg); } });
+$("#pnInput").addEventListener("keydown", e => {
+  const box = $("#pnSugg"), opts = box.hidden ? [] : [...box.querySelectorAll("[data-sg]")];
+  if ((e.key === "ArrowDown" || e.key === "ArrowUp") && opts.length){
+    e.preventDefault(); suggSel = (suggSel + (e.key === "ArrowDown" ? 1 : -1) + opts.length) % opts.length;
+    opts.forEach((o, i) => o.setAttribute("aria-selected", i === suggSel)); opts[suggSel].scrollIntoView({block:"nearest"});
+    $("#pnInput").setAttribute("aria-activedescendant", opts[suggSel].id); return;
+  }
+  if (e.key === "Escape"){ hideSugg(); return; }
+  if (e.key === "Enter"){ e.preventDefault(); if (suggSel >= 0 && opts[suggSel]) pickSugg(opts[suggSel].dataset.sg); else { hideSugg(); runCross(); } }
+});
+$("#dGo").onclick = () => { runDim(); if (window.matchMedia("(max-width:860px)").matches) $("#dimBody").scrollIntoView({behavior:"smooth", block:"start"}); };
+// Keep the search button right under whichever box the person is filling in.
+["#dBore","#dH","#dP","#dJ","#dType"].forEach(s => $(s).addEventListener("focus", () => $(s).closest(".field").after($("#dGo"))));
+// Results also update on their own a moment after typing stops.
+let dimTimer;
+["#dBore","#dH","#dP","#dJ"].forEach(s => $(s).addEventListener("input", () => { clearTimeout(dimTimer); dimTimer = setTimeout(runDim, 600); }));
+$("#dType").addEventListener("change", runDim);
+$("#toDim").onclick = () => { showTab("dim"); };
+["#dBore","#dH","#dP","#dJ"].forEach(s => $(s).addEventListener("keydown", e => { if (e.key==="Enter") runDim(); }));
+$("#catFilter").addEventListener("input", renderCatalog);
+document.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.goto){ showTab(b.dataset.goto); return; }
+  if (b.dataset.setunits){ setUnits(b.dataset.setunits); return; }
+  if (b.id === "askBoltGo"){ const f = $("#dJ"); f.scrollIntoView({behavior:"smooth", block:"center"}); f.focus(); return; }
+  if (b.dataset.copy){ const t = b.dataset.copy; const done = () => { const o = b.textContent; b.textContent = "Copied"; setTimeout(() => b.textContent = o, 1200); };
+    try { navigator.clipboard.writeText(t).then(done, () => {}); } catch(_){ } return; }
+  if (b.dataset.brandid){ brandPick = {pn: $("#pnInput").value.trim().toUpperCase(), id: b.dataset.brandid}; runCross(); return; }
+  if (b.dataset.need){ matState.need = b.dataset.need === matState.need ? null : b.dataset.need; runCross(); return; }
+  if (b.dataset.load){ $("#pnInput").value = b.dataset.load; runCross(); window.scrollTo({top:0}); return; }
+  if (b.dataset.di != null && decState.dec){
+    decState.sel = (b.dataset.di === "all" || decState.sel === +b.dataset.di) ? null : +b.dataset.di;
+    document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", +c.dataset.di === decState.sel));
+    $("#decDetail").innerHTML = decodeDetail();
+    return;
+  }
+  if (b.classList.contains("pick")){ $("#pnInput").value = b.dataset.pn; runCross(); }
+  if (b.classList.contains("xref")){ const p = parts.find(x=>x.id===b.dataset.id); if (p){ $("#pnInput").value = p.part_number; showTab("part"); runCross(); window.scrollTo({top:0}); } }
+  if (b.classList.contains("edit")) startEdit(b.dataset.id);
+  if (b.classList.contains("del")) askDelete(b);
+});
+
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true, 2600); }
+
+/* ---------- catalog editing ---------- */
+const slug = s => s.replace(/[^A-Za-z0-9_\-.]+/g,"_").replace(/^\.+/,"").slice(0,150) || "part";
+const docId = (brand, pn) => slug(brand + "__" + pn);
+function startEdit(id){
+  const p = parts.find(x=>x.id===id); if (!p) return;
+  editingId = id; $("#addWrap").open = true; $("#addSummary").textContent = `Edit ${p.part_number}`; $("#fCancel").hidden = false;
+  const v = x => !kn(x) || x <= 0 ? "" : units==="mm" ? +(x*MM).toFixed(2) : +x.toFixed(4);
+  $("#fPn").value=p.part_number; $("#fBrand").value=p.brand; $("#fSeries").value=p.series||"";
+  $("#fBore").value=v(p.bore_in); $("#fH").value=v(p.height_in); $("#fJmin").value=v(p.bolt_min_in); $("#fJmax").value=v(p.bolt_max_in);
+  $("#fBolt").value=p.bolt_size||""; $("#fNotes").value=p.notes||""; $("#fLock").value=p.locking||""; $("#fMount").value=mountOf(p); $("#fFace").value=v(p.face_to_center_in); $("#fBw").value=v(p.bearing_width_in); $("#fHw").value=v(p.housing_width_in); $("#fType").value=p.bearing_type||"";
+  $("#fSrcType").value = ["catalog","website"].includes(p.source_type) ? p.source_type : "other"; $("#fSrc").value = p.source_ref || "";
+  $("#addWrap").scrollIntoView({block:"start"});
+}
+function resetForm(){ editingId=null; $("#addForm").reset(); $("#addSummary").textContent="Add a part"; $("#fCancel").hidden=true; }
+$("#fCancel").onclick = resetForm;
+function buildPart(o){
+  // Only the part number is required; any size left blank is stored as unknown (null).
+  if (!String(o.part_number ?? "").trim()) throw "Enter a part number.";
+  const num = (val, name) => { const t = String(val ?? "").trim(); if (!t) return null; const n = parseLen(t); if (n == null) throw `${name} "${t}" isn't a number or fraction.`; return n; };
+  const bore = num(o.bore, "Bore"), h = num(o.height, "Base to center"), jmin0 = num(o.bolt_min, "Bolt centers min");
+  let jmax0 = num(o.bolt_max, "Bolt centers max");
+  const jmin = jmin0 ?? jmax0, jmax = jmax0 ?? jmin0;
+  const r4 = x => x == null ? null : Math.round(x*10000)/10000;
+  const bw = num(o.bearing_width ?? o.length_through_bore, "Length through bore"), hw = num(o.housing_width, "Housing base width");
+  return {part_number:String(o.part_number).trim(), brand:String(o.brand||"").trim() || "Unknown brand", series:String(o.series||"").trim(),
+    bore_in:r4(bore), height_in:r4(h), bolt_min_in:r4(jmin == null ? null : Math.min(jmin,jmax)), bolt_max_in:r4(jmax == null ? null : Math.max(jmin,jmax)),
+    bolt_size:String(o.bolt_size||"").trim(), locking:String(o.locking||"").trim(), mount_type: MOUNTS.find(m => m.toLowerCase() === String(o.mount_type||"").trim().toLowerCase()) || "Pillow block", face_to_center_in:r4(num(o.face_to_center, "Mount face to bearing center")), bearing_width_in:r4(bw), housing_width_in:r4(hw), bearing_type:String(o.bearing_type||"").trim(), notes:String(o.notes||"").trim(), source:"user",
+    source_type: ["catalog","website"].includes(String(o.source_type||"").trim().toLowerCase()) ? String(o.source_type).trim().toLowerCase() : "other",
+    source_ref: String(o.source || o.source_ref || "").trim(),
+    verified: ["catalog","website"].includes(String(o.source_type||"").trim().toLowerCase()) && !!String(o.source || o.source_ref || "").trim(),
+    updated:new Date().toISOString()};
+}
+$("#addForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!db) return toast("Saving isn't available in this view.");
+  let p;
+  try { p = buildPart({part_number:$("#fPn").value, brand:$("#fBrand").value, series:$("#fSeries").value, bore:$("#fBore").value, height:$("#fH").value, bolt_min:$("#fJmin").value, bolt_max:$("#fJmax").value, bolt_size:$("#fBolt").value, locking:$("#fLock").value, mount_type:$("#fMount").value, face_to_center:$("#fFace").value, bearing_width:$("#fBw").value, housing_width:$("#fHw").value, bearing_type:$("#fType").value, notes:$("#fNotes").value, source_type:$("#fSrcType").value, source:$("#fSrc").value}); }
+  catch(err){ return toast(err); }
+  const id = docId(p.brand, p.part_number);
+  const prev = editingId ? parts.find(x => x.id === editingId) : null;
+  if (prev && Array.isArray(prev.interchanges)) p.interchanges = prev.interchanges;
+  if (prev) for (const k of ["variants", "primary_role", "fixed_label", "expansion_label", "stocked", "stock_pn"]) if (prev[k] != null) p[k] = prev[k];
+  if (prev) for (const k of ["pilot_dia_in", "bolt_holes"]) if (prev[k] != null) p[k] = prev[k];
+  $("#fSave").disabled = true;
+  try {
+    await db.collection("bearings").doc(id).set(p);
+    if (editingId && editingId !== id) await db.collection("bearings").doc(editingId).delete();
+    toast(editingId ? "Part updated" : "Part added"); resetForm();
+  } catch(err){ handleWriteErr(err); }
+  $("#fSave").disabled = false;
+});
+function askDelete(b){
+  if (b.dataset.confirm){
+    db.collection("bearings").doc(b.dataset.id).delete().then(()=>toast("Part deleted")).catch(handleWriteErr);
+  } else { b.dataset.confirm = "1"; b.textContent = "Confirm"; b.classList.add("accent"); setTimeout(()=>{ if (b.isConnected){ delete b.dataset.confirm; b.textContent="Delete"; b.classList.remove("accent"); } }, 3000); }
+}
+function handleWriteErr(err){
+  if (err && err.code === "invalid_argument"){ canWrite = false; applyWriteState(); toast("You don't have permission to change this catalog."); }
+  else if (err && err.code === "quota_exceeded") toast("The catalog is full. Delete unused parts first.");
+  else toast("Couldn't save. Try again in a moment.");
+}
+function parseCSV(text){
+  const rows = []; let row = [], f = "", q = false;
+  for (let i=0;i<text.length;i++){
+    const ch = text[i];
+    if (q){ if (ch==='"'){ if (text[i+1]==='"'){ f+='"'; i++; } else q=false; } else f+=ch; }
+    else if (ch==='"') q=true;
+    else if (ch===','||ch==='\t'){ row.push(f); f=""; }
+    else if (ch==='\n'){ row.push(f); rows.push(row); row=[]; f=""; }
+    else if (ch!=='\r') f+=ch;
+  }
+  if (f || row.length){ row.push(f); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim()));
+}
+$("#csvGo").onclick = async () => {
+  if (!db) return toast("Saving isn't available in this view.");
+  const rows = parseCSV($("#csvIn").value);
+  if (rows.length < 2){ $("#csvMsg").textContent = "Paste a header row plus at least one data row."; return; }
+  const head = rows[0].map(h => h.trim().toLowerCase().replace(/\s+/g,"_").replace(/_(in|mm)$/,""));
+  const alias = {pn:"part_number", part:"part_number", partnumber:"part_number", h:"height", base_to_center:"height", center_height:"height", j_min:"bolt_min", j_max:"bolt_max", bolt_centers_min:"bolt_min", bolt_centers_max:"bolt_max"};
+  const cols = head.map(h => alias[h] || h);
+  let ok = 0, bad = [];
+  $("#csvGo").disabled = true;
+  for (let i=1;i<rows.length;i++){
+    const o = {}; cols.forEach((c,k)=> o[c] = rows[i][k]);
+    try { const p = buildPart(o); await db.collection("bearings").doc(docId(p.brand,p.part_number)).set(p); ok++; }
+    catch(err){ if (err && err.code){ handleWriteErr(err); break; } bad.push(i+1); }
+  }
+  $("#csvGo").disabled = false;
+  $("#csvMsg").textContent = `Imported ${ok} row${ok===1?"":"s"}.` + (bad.length ? ` Skipped line${bad.length>1?"s":""} ${bad.slice(0,10).join(", ")}${bad.length>10?"…":""} (no part number, or a size that isn't a number).` : "");
+  if (ok && !bad.length) $("#csvIn").value = "";
+};
+function applyWriteState(){
+  $("#addWrap").hidden = !canWrite; $("#csvGo").closest("details").hidden = !canWrite; $("#roNote").hidden = canWrite; renderCatalog();
+}
+
+/* ---------- data (public read-only copy: catalog.json next to this page) ---------- */
+(async () => {
+  applyWriteState();
+  try {
+    const res = await fetch("catalog.json", {cache: "no-cache"});
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    decoders = (data.decoders || []).filter(d => Array.isArray(d.segments))
+      .sort((a,b) => (a.order ?? 99) - (b.order ?? 99));
+    parts = (data.bearings || []).filter(p => p.part_number).map(p => ({...p, brand: p.brand || "Unknown brand"}));
+    if (data.exported) { const f = $("#asOf"); if (f) f.textContent = "Catalog as of " + data.exported + "."; }
+    renderGuides();
+    loaded = true; $("#loadState").hidden = true; showTab(activeTab);
+    if (!parts.length){ $("#loadState").hidden = false; $("#loadState").textContent = "The catalog is empty."; }
+    renderAll();
+  } catch (e) {
+    $("#loadState").hidden = false;
+    $("#loadState").textContent = "The catalog couldn't load. Reload the page to try again.";
+  }
+})();
+setUnits(units);
+
+function setDimMount(m){
+  if (($("#dMount").value || "") !== (m || "")) dimSearchId++;
+  $("#dMount").value = m || "";
+  $("#dStep2").hidden = !m; $("#dPick").hidden = !!m;
+  document.querySelectorAll("#dMountBtns [data-mount]").forEach(b => b.setAttribute("aria-pressed", b.dataset.mount === m));
+  document.querySelectorAll("#v-dim [data-pic]").forEach(svg => svg.toggleAttribute("hidden", svg.dataset.pic !== m));
+  const pillow = m === "Pillow block";
+  if (!m) { $("#dimBody").innerHTML = ""; $("#dimNearWrap").hidden = true; return; }
+  const pil = m === "Piloted flange";
+  $("#fH").hidden = !pillow; if (!pillow) $("#dH").value = "";
+  $("#fP").hidden = !pil; if (!pil) $("#dP").value = "";
+  $("#dJn").textContent = pillow || pil ? "3" : "2";
+  $("#dTn").textContent = pillow || pil ? "4" : "3";
+  $("#dJlabel").textContent = m === "4-bolt flange" ? "Bolt centers (one side of the square)" : pil ? "Bolt circle" : "Bolt centers";
+  setDimPlaceholders();
+  $("#dJnote").textContent = pil ? "Middle of one bolt hole straight across to the middle of the hole directly opposite (corner to corner on a 4-hole flange)."
+    : m === "4-bolt flange" ? "Middle of one bolt hole to the middle of the next hole along the same side, not corner to corner."
+    : m === "2-bolt flange" ? "From the middle of one bolt hole to the middle of the other." : "From the middle of one mounting bolt to the middle of the other.";
+  $("#dimBody").innerHTML = ""; $("#dimNearWrap").hidden = true;
+  $("#dType").closest(".field").after($("#dGo"));
+}
+$("#dMountBtns").addEventListener("click", e => { const b = e.target.closest("[data-mount]"); if (b) setDimMount(b.dataset.mount); });
+// Start every visit blank: clear anything the browser restored into the search boxes.
+function clearSearch(){
+  for (const id of ["pnInput","dBore","dH","dP","dJ"]) { const el = $("#" + id); if (el) el.value = ""; }
+  const t = $("#dType"); if (t) t.value = "";
+  setDimMount("");
+  dimSearchId++; buddyKey = "";
+  if (loaded) runCross();
+}
+clearSearch();
+$("#newSearch").addEventListener("click", () => {
+  brandPick = {pn: null, id: null}; matState = {id: null, need: null};
+  clearSearch();
+  $("#dimBody").innerHTML = ""; $("#dimNearWrap").hidden = true;
+  if (activeTab === "cat") showTab("part");
+  window.scrollTo({top:0, behavior:"smooth"});
+  const f = activeTab === "dim" ? null : $("#pnInput"); if (f) f.focus();
+});
+window.addEventListener("pageshow", e => { if (e.persisted) clearSearch(); });
+</script>
+
+</body></html>
