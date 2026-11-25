@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bearing Buddy</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1465,7 +1470,23 @@ function applyWriteState(){
 
 /* ---------- data ---------- */
 (async () => {
-  if (!window.claude?.use){ $("#loadState").textContent = "Open this page on claude.ai to load the catalog."; return; }
+  if (!window.claude?.use){
+    // Standalone copy (e.g. GitHub Pages): read the catalog from bearings.json next to this page. Read-only.
+    canWrite = false; applyWriteState();
+    $("#roNote").textContent = "This is the read-only web copy of the catalog. Parts are added in the main Bearing Buddy app.";
+    $("#loadState").textContent = "Loading the bearing catalog…";
+    try {
+      const res = await fetch("bearings.json", {cache: "no-cache"});
+      if (!res.ok) throw new Error(res.status);
+      const data = await res.json();
+      decoders = Object.entries(data.decoders || {}).map(([id, d]) => ({id, ...d})).filter(d => Array.isArray(d.segments))
+        .sort((a,b) => (a.order ?? 99) - (b.order ?? 99));
+      renderGuides();
+      parts = Object.entries(data.docs || {}).map(([id, d]) => ({id, ...d})).filter(p => p.part_number).map(p => ({...p, brand: p.brand || "Unknown brand"}));
+      loaded = true; $("#loadState").hidden = true; showTab(activeTab); renderAll();
+    } catch (e) { $("#loadState").hidden = false; $("#loadState").textContent = "The catalog couldn't load (bearings.json is missing next to this page). Reload to try again."; }
+    return;
+  }
   db = await window.claude.use("db");
   if (!db){ $("#loadState").textContent = "Sign in to claude.ai to load the bearing catalog."; return; }
   const user = await window.claude.use("user");
@@ -1543,3 +1564,5 @@ $("#newSearch").addEventListener("click", () => {
 });
 window.addEventListener("pageshow", e => { if (e.persisted) clearSearch(); });
 </script>
+
+</html>
