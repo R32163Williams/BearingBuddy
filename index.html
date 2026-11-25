@@ -1,4 +1,3 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Bearing Buddy</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -9,7 +8,7 @@
 :root{
   --bg:#eef0f2; --surface:#ffffff; --sunk:#e3e7ea; --line:#c9d0d6; --ink:#1b2329; --muted:#5d6a74;
   --accent:#b5650d; --accent-ink:#ffffff; --accent-soft:#f6e6d2; --dim:#2a5d86;
-  --ok:#1f7a4a; --ok-soft:#dcefe4; --warn:#9a6a00; --warn-soft:#f6ecd0; --bad:#a83232; --bad-soft:#f5dcdc;
+  --ok:#1f7a4a; --ok-soft:#dcefe4; --warn:#9a6a00; --warn-soft:#f6ecd0; --bad:#a83232; --bad-soft:#f5dcdc; --swap:#c45a00; --swap-soft:#fbe6d4;
   --display:"Archivo", "Helvetica Neue", Arial, sans-serif;
   --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -17,11 +16,11 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#13181c; --surface:#1b2227; --sunk:#232c32; --line:#34404a; --ink:#e4e9ed; --muted:#97a5b0;
   --accent:#e59a45; --accent-ink:#1a1206; --accent-soft:#3a2a17; --dim:#7cb4de;
-  --ok:#5cc08a; --ok-soft:#173326; --warn:#e0b04a; --warn-soft:#352b12; --bad:#e57b7b; --bad-soft:#3a1d1d; color-scheme:dark}}
+  --ok:#5cc08a; --ok-soft:#173326; --warn:#e0b04a; --warn-soft:#352b12; --bad:#e57b7b; --bad-soft:#3a1d1d; --swap:#f39a4b; --swap-soft:#3a2412; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#13181c; --surface:#1b2227; --sunk:#232c32; --line:#34404a; --ink:#e4e9ed; --muted:#97a5b0;
   --accent:#e59a45; --accent-ink:#1a1206; --accent-soft:#3a2a17; --dim:#7cb4de;
-  --ok:#5cc08a; --ok-soft:#173326; --warn:#e0b04a; --warn-soft:#352b12; --bad:#e57b7b; --bad-soft:#3a1d1d; color-scheme:dark}
+  --ok:#5cc08a; --ok-soft:#173326; --warn:#e0b04a; --warn-soft:#352b12; --bad:#e57b7b; --bad-soft:#3a1d1d; --swap:#f39a4b; --swap-soft:#3a2412; color-scheme:dark}
 
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
@@ -141,6 +140,9 @@ details.kindwarn>summary{color:var(--bad);font-weight:700}
 li.unk .ck{background:var(--warn-soft);color:var(--warn)}
 li.diff .ck{background:var(--warn);color:var(--surface)}
 li.diff b{color:var(--warn)}
+li.swap .ck{background:var(--swap);color:var(--surface)}
+li.swap b{color:var(--swap)}
+.swaptag{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;background:var(--swap-soft);color:var(--swap);border:1px solid var(--swap)}
 .mhead{display:flex;justify-content:space-between;gap:8px;align-items:start}
 .mhead .pn{font:700 16px var(--mono);overflow-wrap:anywhere}
 .mhead .sub{color:var(--muted);font-size:12px}
@@ -248,6 +250,7 @@ svg.side{width:100%;height:auto;display:block;background:var(--bg);border-radius
           <button class="ynbtn" style="flex:1 1 0;padding:10px 6px" data-mount="4-bolt flange" aria-pressed="false">4-bolt flange</button>
           <button class="ynbtn" style="flex:1 1 0;padding:10px 6px" data-mount="2-bolt flange" aria-pressed="false">2-bolt flange</button>
           <button class="ynbtn" style="flex:1 1 0;padding:10px 6px" data-mount="Piloted flange" aria-pressed="false">Piloted flange</button>
+          <button class="ynbtn" style="flex:1 1 0;padding:10px 6px" data-mount="3-bolt flange" aria-pressed="false">3-bolt flange</button>
         </div>
         <input type="hidden" id="dMount" value="">
       </div>
@@ -294,6 +297,19 @@ svg.side{width:100%;height:auto;display:block;background:var(--bg);border-radius
         <circle cx="180" cy="190" r="10" fill="var(--accent)"/><text x="180" y="194.5" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-ink)">2</text>
         <defs><marker id="am2" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L8 4 L0 7 Z" fill="var(--accent)"/></marker></defs>
       </svg>
+      <svg class="draw" data-pic="3-bolt flange" hidden viewBox="0 0 360 200" role="img" aria-label="Where to measure on a 3-bolt flange: 1 shaft size, 2 bolt to bolt between any two holes">
+        <circle cx="180" cy="104" r="84" fill="var(--sunk)" stroke="var(--ink)" stroke-width="1.5"/>
+        <circle cx="180" cy="104" r="62" fill="none" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 3"/>
+        <circle cx="180" cy="104" r="24" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+        <circle cx="180" cy="42" r="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/><circle cx="126.3" cy="135" r="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/><circle cx="233.7" cy="135" r="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+        <line x1="158" y1="104" x2="202" y2="104" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#am3)" marker-end="url(#am3)"/>
+        <circle cx="180" cy="88" r="10" fill="var(--accent)"/><text x="180" y="92.5" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-ink)">1</text>
+        <line x1="126.3" y1="160" x2="233.7" y2="160" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#am3)" marker-end="url(#am3)"/>
+        <line x1="126.3" y1="145" x2="126.3" y2="166" stroke="var(--accent)" stroke-width=".8"/><line x1="233.7" y1="145" x2="233.7" y2="166" stroke="var(--accent)" stroke-width=".8"/>
+        <circle cx="180" cy="176" r="10" fill="var(--accent)"/><text x="180" y="180.5" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-ink)">2</text>
+        <text x="300" y="190" text-anchor="middle" font-size="10" style="fill:var(--muted)">dashed = bolt circle</text>
+        <defs><marker id="am3" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L8 4 L0 7 Z" fill="var(--accent)"/></marker></defs>
+      </svg>
       <svg class="draw" data-pic="Piloted flange" hidden viewBox="0 0 360 200" role="img" aria-label="Where to measure on a piloted flange: 1 shaft size, 2 pilot diameter on the back, 3 bolt circle">
         <circle cx="180" cy="100" r="86" fill="var(--sunk)" stroke="var(--ink)" stroke-width="1.5"/>
         <circle cx="180" cy="100" r="56" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 3"/>
@@ -330,7 +346,7 @@ svg.side{width:100%;height:auto;display:block;background:var(--bg);border-radius
   <!-- CATALOG -->
   <section id="v-cat" class="panel" hidden>
     <div class="refhead"><h2>Catalog</h2><span id="catCount" class="pill muted"></span></div>
-    <div id="roNote" class="note" hidden>This is a read-only copy of the catalog. <span id="asOf"></span></div>
+    <div id="roNote" class="note" hidden>You can view this catalog. Ask the owner for Contributor access to add or edit parts.</div>
     <details id="addWrap">
       <summary id="addSummary">Add a part</summary>
       <form id="addForm" class="panel" style="margin-top:10px;background:var(--bg)">
@@ -347,7 +363,7 @@ svg.side{width:100%;height:auto;display:block;background:var(--bg);border-radius
           <div class="field"><label class="label" for="fJmax">Bolt centers max <span class="unitL"></span></label><input id="fJmax" inputmode="decimal" placeholder="same as min if fixed"></div>
         </div>
         <div class="row">
-          <div class="field"><label class="label" for="fMount">Mounting</label><select id="fMount"><option>Pillow block</option><option>4-bolt flange</option><option>2-bolt flange</option><option>Piloted flange</option></select></div>
+          <div class="field"><label class="label" for="fMount">Mounting</label><select id="fMount"><option>Pillow block</option><option>4-bolt flange</option><option>2-bolt flange</option><option>Piloted flange</option><option>3-bolt flange</option></select></div>
           <div class="field"><label class="label" for="fFace">Mount face to bearing center <span class="unitL"></span></label><input id="fFace" inputmode="decimal" placeholder="Flanges only"></div>
           <div class="field"><label class="label" for="fBolt">Bolt size</label><input id="fBolt" placeholder="1/2″ or M14"></div>
           <div class="field"><label class="label" for="fBw">Length through bore <span class="unitL"></span></label><input id="fBw" inputmode="decimal" placeholder="e.g. Bi in IPTCI catalogs"></div>
@@ -391,7 +407,7 @@ const NEAR_H = 0.125, NEAR_J = 0.25; // "close" thresholds (inch)
 let units = "in";
 try { units = localStorage.getItem("pbc-units") || "in"; } catch(e) {}
 let parts = [];          // [{id, ...}]
-let db = null, canWrite = false, editingId = null, currentRef = null;
+let db = null, canWrite = true, editingId = null, currentRef = null;
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -435,7 +451,11 @@ const unitLabel = () => units === "mm" ? "(mm)" : "(in)";
 
 /* ---------- matching ---------- */
 // Each check is true (matches), false (doesn't) or null (size not on file for one of the parts).
-const MOUNTS = ["Pillow block", "4-bolt flange", "2-bolt flange", "Piloted flange"];
+const MOUNTS = ["Pillow block", "4-bolt flange", "2-bolt flange", "Piloted flange", "3-bolt flange"];
+// 3-bolt flanges: bolt_min_in holds the bolt circle. The three holes are equally spaced, so the distance between
+// any two holes is the bolt circle x sin 60° (0.866).
+const is3Bolt = p => mountOf(p) === "3-bolt flange";
+const SIN60 = Math.sqrt(3) / 2;
 const mountOf = p => p.mount_type || "Pillow block";
 const isFlange = p => mountOf(p) !== "Pillow block";
 const isPiloted = p => mountOf(p) === "Piloted flange";
@@ -519,15 +539,26 @@ const seriesBolts = p => SERIES_BOLTS[(p.brand || "") + "|" + (p.series || "")] 
 const boltCount = p => p.bolt_holes || (/4-bolt|four-bolt/i.test(p.series || "") ? 4 : /2-bolt|two-bolt/i.test(p.series || "") ? 2 : null) || seriesBolts(p);
 const typeFam = p => String(p.bearing_type || "").trim().toLowerCase();
 // A part that bolts up but is a different kind of bearing (ball vs roller) or a different bolt count is never a green fit.
+// Owner's rule (Nov 2026): tapered roller and spherical roller units (e.g. Type E) cross to each other, both ways, when the
+// mounting matches. They stay fits (stocked parts listed first); only the bearing type difference is flagged, in orange.
+const isTypeSwap = (ref, c) => { const a = typeFam(ref), b = typeFam(c); return (/tapered/.test(a) && /spherical/.test(b)) || (/spherical/.test(a) && /tapered/.test(b)); };
 function kindDiffs(ref, c){
   const out = [];
   const a = typeFam(ref), b = typeFam(c);
-  if (a && b && a !== b) out.push("type");
+  if (a && b && a !== b && !isTypeSwap(ref, c)) out.push("type");
   if (ref.id !== "__probe"){ const x = boltCount(ref), y = boltCount(c); if (x && y && x !== y) out.push("bolts"); }
   return out;
 }
 const kindLabel = d => d.includes("type") && d.includes("bolts") ? "Different bearing type and bolt count" : d.includes("type") ? "Different bearing type" : "Different bolt count";
 // Locking families: catalogs word the same mechanism differently, so compare by type, not exact text.
+// Part-aware locking family. Spherical roller units: Timken's concentric set screw collar (QA solid-block units) is a
+// set screw collar on the extended inner ring like the other roller brands' locking collars, so it counts as the same type
+// (owner's call, Nov 2026; Rexnord's PT Select guide pairs QAFL with USFB5000 and SR2-FB4 the same way). Ball bearings keep
+// concentric collars (D-Lok, BOA, SKWEZLOC) separate from plain set screw locking.
+function lockFamP(p){
+  const f = lockFam(p && p.locking);
+  return f === "concentric collar" && /roller/i.test(p.bearing_type || "") && !/tapered/i.test(p.bearing_type || "") ? "locking collar" : f;
+}
 function lockFam(x){
   const t = String(x || "").toLowerCase();
   if (!t.trim()) return "";
@@ -859,20 +890,24 @@ function materialBlock(p){
 
 /* ---------- views ---------- */
 function refCard(p){
-  const missing = [!(kn(p.bore_in) && p.bore_in > 0) && "shaft size", !isFlange(p) && !kn(p.height_in) && "base to center", isPiloted(p) && !kn(p.pilot_dia_in) && "pilot diameter", !kn(p.bolt_min_in) && (isPiloted(p) ? "bolt circle" : "bolt spacing")].filter(Boolean);
+  const missing = [!(kn(p.bore_in) && p.bore_in > 0) && "shaft size", !isFlange(p) && !kn(p.height_in) && "base to center", isPiloted(p) && !kn(p.pilot_dia_in) && "pilot diameter", !kn(p.bolt_min_in) && (isPiloted(p) || is3Bolt(p) ? "bolt circle" : "bolt spacing")].filter(Boolean);
   const boreSub = !(kn(p.bore_in) && p.bore_in > 0) ? "" : units==="mm" ? frac(p.bore_in)||p.bore_in.toFixed(4)+"″" : (p.bore_in*MM).toFixed(2)+" mm";
   const q = ($("#pnInput").value || "").trim(), nq = x => String(x || "").toUpperCase().replace(/[\s-]/g,"");
   const via = Array.isArray(p.interchanges) && nq(q) !== nq(p.part_number) ? p.interchanges.find(i => nq(i.part_number) === nq(q) || (i.alt && nq(i.alt) === nq(q))) : null;
   const hitV = Array.isArray(p.variants) ? p.variants.find(v => nq(v.part_number) === nq(q)) : null;
-  return `${ucflNote(p)}${hitV ? `<div class="banner" style="border-color:var(--ok)"><strong>${esc(hitV.part_number)}</strong> is listed with <strong>${esc(p.part_number)}</strong>${hitV.role ? " as its " + esc(hitV.role.toLowerCase()) + " version" : ""}${hitV.note ? " (" + esc(hitV.note) + ")" : ""}. Same mounting dimensions.</div>` : ""}${via ? `<div class="banner" style="border-color:var(--ok)"><strong>${esc(via.brand)} ${esc(via.part_number)}</strong> isn't in the catalog by itself, but ${esc(p.brand)} lists it as interchangeable with <strong>${esc(p.part_number)}</strong>. Showing that part.</div>` : ""}${decodeBlock(p.part_number, p.brand)}
+  return `${ucflNote(p)}${hitV ? `<div class="banner" style="border-color:var(--ok)"><strong>${esc(hitV.part_number)}</strong> is listed with <strong>${esc(p.part_number)}</strong>${hitV.role ? " as its " + esc(hitV.role.toLowerCase()) + " version" : ""}${hitV.note ? " (" + esc(hitV.note) + ")" : ""}. Same mounting dimensions.</div>` : ""}${via ? `<div class="banner" style="border-color:var(--ok)"><strong>${esc(via.brand)} ${esc(via.part_number)}</strong> isn't in the catalog by itself, but ${esc(via.by || p.brand)} lists it as interchangeable with <strong>${esc(p.part_number)}</strong>. Showing that part.</div>` : ""}${decodeBlock(p.part_number, p.brand)}
   ${p.stocked === true ? `<div>${stockBadge(p)}</div>` : ""}
   ${variantBlock(p)}
   ${isFlange(p) ? (kn(p.bolt_min_in) ? flangeView(p, p, {boltOk:true}, true) : "") : hasDims(p) && kn(p.bore_in) ? drawing(p) : ""}
-  ${missing.length ? `<div class="banner">Not on file yet: <strong>${esc(missing.join(", "))}</strong>. ${Array.isArray(p.interchanges) && p.interchanges.length ? `The matches shown come from ${esc(p.brand)}'s published interchange list.` : `Matches use the sizes that are known, so some results are marked "Might fit". Add the missing sizes on the Catalog tab to firm them up.`}</div>` : ""}
+  ${missing.length ? `<div class="banner">Not on file yet: <strong>${esc(missing.join(", "))}</strong>. ${Array.isArray(p.interchanges) && p.interchanges.some(i => !i.by) ? `The matches shown come from ${esc(p.brand)}'s published interchange list.` : `Matches use the sizes that are known, so some results are marked "Might fit". Add the missing sizes on the Catalog tab to firm them up.`}</div>` : ""}
   <div class="spec">
     <div><span class="label">Bore</span><b>${esc(fmtBore(p.bore_in))}</b><em>${esc(boreSub)}</em></div>
     <div><span class="label">Mounting</span><b style="font-size:14px">${esc(mountOf(p))}</b></div>
-    ${isPiloted(p) ? `<div><span class="label">Pilot diameter</span><b>${esc(fmt(p.pilot_dia_in))}</b><em>${esc(sub(p.pilot_dia_in))}</em></div>
+    ${is3Bolt(p) ? `<div><span class="label">Bolt circle</span><b>${esc(fmt(p.bolt_min_in))}</b><em>${esc(sub(p.bolt_min_in))}</em></div>
+    <div><span class="label">Bolt to bolt (any two holes)</span><b>${esc(kn(p.bolt_min_in) ? fmt(p.bolt_min_in * SIN60) : "—")}</b><em>${esc(kn(p.bolt_min_in) ? sub(p.bolt_min_in * SIN60) : "")}</em></div>
+    <div><span class="label">Mount face to bearing center</span><b>${esc(fmt(p.face_to_center_in))}</b><em>${esc(sub(p.face_to_center_in))}</em></div>
+    <div><span class="label">Bolt holes</span><b style="font-size:14px">3, equally spaced</b></div>`
+    : isPiloted(p) ? `<div><span class="label">Pilot diameter</span><b>${esc(fmt(p.pilot_dia_in))}</b><em>${esc(sub(p.pilot_dia_in))}</em></div>
     <div><span class="label">Bolt circle</span><b>${esc(fmt(p.bolt_min_in))}</b><em>${esc(sub(p.bolt_min_in))}</em></div>
     <div><span class="label">Bolt holes</span><b style="font-size:14px">${esc(boltCount(p) ? String(boltCount(p)) + (!p.bolt_holes && seriesBolts(p) ? " (from " + boltSrc(p) + ")" : "") : "Not on file")}</b></div>`
     : `${isFlange(p) ? `<div><span class="label">Mount face to bearing center</span><b>${esc(fmt(p.face_to_center_in))}</b><em>${esc(sub(p.face_to_center_in))}</em></div>`
@@ -893,9 +928,9 @@ function refCard(p){
 function flangeView(ref, c, r, single){
   // Front view looking at the mounting face: the part you're replacing dashed, the other part colored.
   const W = 240, H = 156, cx = 120, cy = 70;
-  const four = mountOf(c) === "4-bolt flange", pil = isPiloted(c);
+  const four = mountOf(c) === "4-bolt flange", pil = isPiloted(c), tri = is3Bolt(c);
   const span = Math.max(ref.bolt_max_in ?? ref.bolt_min_in, c.bolt_max_in ?? c.bolt_min_in);
-  const s = pil ? 104 / span : four ? 76 / span : 180 / (span * 1.35);
+  const s = pil || tri ? 104 / span : four ? 76 / span : 180 / (span * 1.35);
   const shape = (p, attrs) => {
     const j = p.bolt_min_in * s, hr = 5;
     if (pil){
@@ -903,6 +938,11 @@ function flangeView(ref, c, r, single){
       const holes = Array.from({length:n}, (_, i) => { const a = Math.PI/4 + i * 2*Math.PI/n; return `<circle cx="${cx + rr*Math.cos(a)}" cy="${cy + rr*Math.sin(a)}" r="${hr}" ${attrs.hole}/>`; }).join("");
       const pilot = kn(p.pilot_dia_in) ? `<circle cx="${cx}" cy="${cy}" r="${p.pilot_dia_in*s/2}" fill="none" ${attrs.hole.replace(/fill="[^"]*"/, "")}/>` : "";
       return `<circle cx="${cx}" cy="${cy}" r="${rr + 11}" ${attrs.body}/>` + pilot + holes;
+    }
+    if (tri){
+      const rr = j / 2;
+      const holes = [0, 1, 2].map(i => { const a = -Math.PI/2 + i * 2*Math.PI/3; return `<circle cx="${cx + rr*Math.cos(a)}" cy="${cy + rr*Math.sin(a)}" r="${hr}" ${attrs.hole}/>`; }).join("");
+      return `<circle cx="${cx}" cy="${cy}" r="${rr + 11}" ${attrs.body}/>` + holes;
     }
     if (four){
       const half = j / 2 + 13;
@@ -919,7 +959,7 @@ function flangeView(ref, c, r, single){
   g += `<circle cx="${cx}" cy="${cy}" r="${Math.max(8, (c.bore_in || 1) * s * 0.6)}" fill="var(--surface)" stroke="${col}" stroke-width="1.4"/>`;
   if (!single) g += shape(ref, {body:`fill="none" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="4 3"`, hole:`fill="none" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="2 2"`});
   return `<svg class="side" viewBox="0 0 ${W} ${H}" role="img" aria-label="Bolt pattern of ${esc(c.part_number)}">${g}
-    <text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" style="fill:var(--muted);font-family:var(--mono)">${pil ? `${c.bolt_holes || 4}-bolt piloted · bolt circle ${esc(fmt(c.bolt_min_in))}${kn(c.pilot_dia_in) ? " · pilot " + esc(fmt(c.pilot_dia_in)) : ""}` : `${four ? "4-bolt" : "2-bolt"} · bolts ${esc(fmt(c.bolt_min_in))}`}</text></svg>`;
+    <text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" style="fill:var(--muted);font-family:var(--mono)">${tri ? `3-bolt · bolt circle ${esc(fmt(c.bolt_min_in))}` : pil ? `${c.bolt_holes || 4}-bolt piloted · bolt circle ${esc(fmt(c.bolt_min_in))}${kn(c.pilot_dia_in) ? " · pilot " + esc(fmt(c.pilot_dia_in)) : ""}` : `${four ? "4-bolt" : "2-bolt"} · bolts ${esc(fmt(c.bolt_min_in))}`}</text></svg>`;
 }
 function sideView(ref, c, r){
   // Side view: current part as a dashed outline, replacement shaded on top of it.
@@ -958,7 +998,7 @@ function matchTable(ref, rows, mode, exact){
   if (!rows.length) return "";
   const probe = ref.id === "__probe";
   const refName = probe ? "your current mount" : "the part you're replacing";
-  const li = (state, title, detail) => `<li class="${state}"><span class="ck" aria-hidden="true">${state==="ok"?"✓":state==="bad"?"✗":state==="unk"?"?":state==="diff"?"!":"•"}</span><span><b>${esc(title)}</b><br><span class="sub">${esc(detail)}</span></span></li>`;
+  const li = (state, title, detail) => `<li class="${state}"><span class="ck" aria-hidden="true">${state==="ok"?"✓":state==="bad"?"✗":state==="unk"?"?":state==="diff"||state==="swap"?"!":"•"}</span><span><b>${esc(title)}</b><br><span class="sub">${esc(detail)}</span></span></li>`;
   const notOnFile = who => `Not on file for ${who}. Check the manufacturer's catalog.`;
   return `<p class="note" style="margin:0">In each picture the <strong>dashed outline</strong> is ${esc(refName)} and the <strong>colored block</strong> is the other part. Green means it lines up; red shows where it doesn't.</p>
   <div class="cards">${rows.map(({c, r, ref: R = ref}) => {
@@ -979,7 +1019,8 @@ function matchTable(ref, rows, mode, exact){
     else if (r.boltOk){
       const exact = Math.abs(r.hi - r.lo) < 0.0005;
       const slack = r.gap > 0.0005 ? ` (off by ${fmt(r.gap)}, within the 0.05″ measuring allowance)` : "";
-      if (r.piloted) items.push(li("ok", probe ? "Matches your bolt circle" : "Bolt circle lines up", `Bolt circle ${fmt(c.bolt_min_in)}${slack}`));
+      if (is3Bolt(c)) items.push(li("ok", probe ? "Matches your bolt pattern" : "Bolt circle lines up", `3-bolt, bolt circle ${fmt(c.bolt_min_in)} (${fmt(c.bolt_min_in * SIN60)} between any two holes)${slack}`));
+      else if (r.piloted) items.push(li("ok", probe ? "Matches your bolt circle" : "Bolt circle lines up", `Bolt circle ${fmt(c.bolt_min_in)}${slack}`));
       else if (r.flange) items.push(li("ok", probe ? "Matches your bolt pattern" : "Bolt pattern lines up", `${mountOf(c)}, bolts ${fmt(c.bolt_min_in)} apart${mountOf(c) === "4-bolt flange" ? " (each side of the square)" : ""}${slack}`));
       else items.push(li("ok", probe ? "Reaches your bolt holes" : "Bolt holes line up", (exact || r.gap > 0.0005 ? `Bolt spacing ${fmt(r.lo)}` : `Any bolt spacing from ${fmt(r.lo)} to ${fmt(r.hi)} works`) + slack));
     } else items.push(li("bad", "Bolt holes don't line up", `Off by ${fmt(r.gap)}`));
@@ -1011,14 +1052,15 @@ function matchTable(ref, rows, mode, exact){
       if (!b) list.push(li("unk", `${cap} not on file`, "Check the manufacturer's catalog"));
       else if (!a) list.push(probe ? li("info", cap, b) : li("unk", `${cap} can't be compared`, `This part: ${b}. Not on file for the part you're replacing (${R.brand}).`));
       else if (a.toLowerCase() === b.toLowerCase()) list.push(li("ok", `Same ${name}`, b));
-      else if (k === "locking" && lockFam(a) === lockFam(b)) list.push(li("ok", `Same locking type (${lockFam(b)})`, `${b}. The part you're replacing: ${a}`));
+      else if (k === "locking" && lockFamP(R) === lockFamP(c)) list.push(li("ok", `Same locking type (${lockFamP(c)})`, `${b}. The part you're replacing: ${a}`));
+      else if (k === "bearing_type" && isTypeSwap(R, c)) list.push(li("swap", `Different bearing type: ${b}`, `${probe ? "You picked" : "The part you're replacing is"} ${a}. Same mounting; tapered and spherical roller units can stand in for each other. Check load, speed and thrust for the application.`));
       else if (k === "bearing_type") list.push(li("bad", `Different bearing type: ${b}`, `${probe ? "You picked" : "The part you're replacing is"} ${a}. Not a direct replacement. Load, speed and life ratings differ.`));
       else list.push(li("diff", `Different ${name}`, `${b}. The part you're replacing: ${a}`));
     }
     const wrong = kd.length > 0;
     const cls = (fits && !wrong ? "fit" : st === "no" || wrong ? "nofit" : "maybe") + (wrong ? " kind" : "") + (exact && fits && !wrong ? " exact" : "");
     return `<article class="mcard ${cls}">
-      <div class="mhead"><div style="min-width:0"><div class="pn">${esc(c.part_number)}</div><div class="sub">${esc(c.brand)}${c.series ? " · " + esc(c.series) : ""}</div>${variantBlock(c, true)}<div style="margin-top:4px">${stockBadge(c)}${srcBadge(c)}${ucflNote(c, true)}</div></div>
+      <div class="mhead"><div style="min-width:0"><div class="pn">${esc(c.part_number)}</div><div class="sub">${esc(c.brand)}${c.series ? " · " + esc(c.series) : ""}</div>${isTypeSwap(R, c) ? `<span class="swaptag">${esc(c.bearing_type)} in place of ${esc(String(R.bearing_type || "").toLowerCase())}</span>` : ""}${variantBlock(c, true)}<div style="margin-top:4px">${stockBadge(c)}${srcBadge(c)}${ucflNote(c, true)}</div></div>
         <span class="verdict">${wrong ? "✗ " + kindLabel(kd) : fits ? "✓ Fits" : st === "no" ? "✗ Won't fit as-is" : "? Might fit"}</span></div>
       ${wrong ? `<div class="kindbar">⚠ ${esc(kindLabel(kd))}${fits ? ". The sizes line up, but this is <strong>not the same bearing</strong>." : "."}</div>` : ""}
       ${r.flange ? flangeView(R, c, r) : sideView(R, c, r)}
@@ -1095,10 +1137,18 @@ function runCross(){
     const keep = ({c}) => matState.need === "yes" ? isStainless(c) : !isStainless(c);
     matches = matches.filter(keep); near = near.filter(keep); maybe = maybe.filter(keep); wrongKind = wrongKind.filter(keep);
   }
-  const pub = Array.isArray(p.interchanges) ? p.interchanges : [];
-  const pubHtml = pub.length ? `<div class="verdictbig fit">✓ ${esc(p.brand)}'s published interchange for ${esc(p.part_number)}</div>
-    <ul class="checks">${pub.map(i => `<li class="ok"><span class="ck" aria-hidden="true">✓</span><span><b>${esc(i.brand)} ${esc(i.part_number)}</b>${i.alt ? `<br><span class="sub">Part no. ${esc(i.alt)}</span>` : ""}</span></li>`).join("")}</ul>
-    <p class="note" style="margin:0">From ${esc(p.source_ref || "the manufacturer's catalog")}. ${esc(p.brand)} states these are dimensionally interchangeable.</p>` : "";
+  // Interchanges the part's own maker publishes, and interchanges published by another maker (e.g. Rexnord's PT Select guide).
+  const allPub = Array.isArray(p.interchanges) ? p.interchanges : [];
+  const pub = allPub.filter(i => !i.by), other = allPub.filter(i => i.by);
+  const icLi = i => `<li class="ok"><span class="ck" aria-hidden="true">✓</span><span><b>${esc(i.brand)} ${esc(i.part_number)}</b>${i.alt ? `<br><span class="sub">Part no. ${esc(i.alt)}</span>` : ""}${i.note ? `<br><span class="sub">${esc(i.note)}</span>` : ""}</span></li>`;
+  const otherBy = [...new Set(other.map(i => i.by))];
+  const pubHtml = (pub.length ? `<div class="verdictbig fit">✓ ${esc(p.brand)}'s published interchange for ${esc(p.part_number)}</div>
+    <ul class="checks">${pub.map(icLi).join("")}</ul>
+    <p class="note" style="margin:0">From ${esc(p.source_ref || "the manufacturer's catalog")}. ${esc(p.brand)} states these are dimensionally interchangeable.</p>` : "")
+    + otherBy.map(by => { const L = other.filter(i => i.by === by), src = L[0].source || by + "'s interchange guide";
+      return `<details><summary>${esc(by)} lists ${L.length} part number${L.length === 1 ? "" : "s"} as interchangeable with ${esc(p.part_number)} <span class="pill ok">${L.length}</span></summary>
+      <p class="note" style="margin:8px 0 0">From the ${esc(src)}. These are ${esc(by)}'s published interchanges. Their sizes are not on file here, so they were not checked against the drawings.</p>
+      <ul class="checks">${L.map(icLi).join("")}</ul></details>`; }).join("");
   // A part with only its shaft size on file can't be matched by fit; don't list every same-bore block as "might fit".
   if (!kn(p.height_in) && !kn(p.bolt_min_in)) { maybe = []; near = []; wrongKind = []; }
   $("#resTitle").textContent = `Interchanges for ${p.part_number}`;
@@ -1106,14 +1156,14 @@ function runCross(){
   $("#resCount").textContent = `${total} match${total===1?"":"es"}`;
   $("#resCount").className = "pill " + (total ? "ok" : "muted");
   // Fits are split by locking: same locking type first, then different locking, then locking not on file.
-  const lf = lockFam(p.locking);
-  const sameL = matches.filter(({c}) => lf && lockFam(c.locking) === lf);
-  const diffL = matches.filter(({c}) => lf && lockFam(c.locking) && lockFam(c.locking) !== lf);
-  const unkL = matches.filter(({c}) => !lf || !lockFam(c.locking));
+  const lf = lockFamP(p);
+  const sameL = matches.filter(({c}) => lf && lockFamP(c) === lf);
+  const diffL = matches.filter(({c}) => lf && lockFamP(c) && lockFamP(c) !== lf);
+  const unkL = matches.filter(({c}) => !lf || !lockFamP(c));
   const lockBlocks = (diffL.length ? `<details open><summary>Fits, but with a different locking type <span class="pill warn">${diffL.length}</span></summary><div style="display:grid;gap:12px;margin-top:10px"><p class="note" style="margin:0">Same mounting sizes. The bearing locks to the shaft a different way, so check that suits the application.</p>${matchTable(p, diffL, "match")}</div></details>` : "")
     + (unkL.length ? `<details ${sameL.length || diffL.length ? "" : "open"}><summary>Fits, locking not on file ${lf ? "for these parts" : "for " + esc(p.part_number)} <span class="pill warn">${unkL.length}</span></summary><div style="display:grid;gap:12px;margin-top:10px">${matchTable(p, unkL, "match")}</div></details>` : "");
   $("#resBody").innerHTML = pubHtml + (pub.length && !matches.length ? "" : matches.length
-    ? (sameL.length ? `<div class="verdictbig fit">✓ Direct replacement${sameL.length===1?"":"s"}, same locking: ${sameL.map(({c}) => `${esc(c.brand)} ${esc(c.part_number)}`).join(", ")}</div>` + matchTable(p, sameL, "match", true)
+    ? (sameL.length ? `<div class="verdictbig fit">✓ Direct replacement${sameL.length===1?"":"s"}, same locking: ${sameL.map(({c}) => `${esc(c.brand)} ${esc(c.part_number)}${isTypeSwap(p, c) ? " (" + esc(String(c.bearing_type || "").toLowerCase()) + ")" : ""}`).join(", ")}</div>` + matchTable(p, sameL, "match", true)
        : `<div class="verdictbig nofit">No fit with the same locking type${lf ? ` (${esc(lf)})` : ""}. The parts below fit the mounting.</div>`) + lockBlocks
     : `<div class="verdictbig nofit">✗ No confirmed replacements found</div><p class="note" style="margin:0">A direct replacement needs the same bearing type, the same bolt count, the same shaft size, the same base to center, and bolt holes that line up.${wrongKind.length ? " Some parts below have the same sizes but are a different kind of bearing. They are not replacements." : ""}${maybe.length ? " The parts below match on every size that's known, but some sizes aren't on file." : ""}${!kn(p.height_in) && !kn(p.bolt_min_in) ? " Base to center and bolt spacing aren't on file for this part, so it can't be matched by size yet." : ""}</p>`);
   if (wrongKind.length){
@@ -1130,7 +1180,8 @@ function runCross(){
 function runDim(){
   const dmount = $("#dMount").value;
   if (!dmount){ $("#dimBody").innerHTML = `<div class="empty">Choose the mounting type on the left to get started.</div>`; $("#dimNearWrap").hidden = true; return; }
-  const bore = parseLen($("#dBore").value), h = dmount === "Pillow block" ? parseLen($("#dH").value) : null, j = parseLen($("#dJ").value), pd = dmount === "Piloted flange" ? parseLen($("#dP").value) : null;
+  const jRaw = parseLen($("#dJ").value), j = jRaw != null && dmount === "3-bolt flange" ? jRaw / SIN60 : jRaw;
+  const bore = parseLen($("#dBore").value), h = dmount === "Pillow block" ? parseLen($("#dH").value) : null, pd = dmount === "Piloted flange" ? parseLen($("#dP").value) : null;
   $("#dimNearWrap").hidden = true;
   if (h == null && j == null && pd == null && bore == null && !$("#dType").value){ dimSearchId++; $("#dimBody").innerHTML = `<div class="empty">Fill in any measurement you have to see matching parts.</div>`; return; }
   const btype = $("#dType").value;
@@ -1142,7 +1193,7 @@ function runDim(){
     return {c, ref, r: compare(ref, c)};
   }).filter(({r, c}) => (bore == null || r.boreOk !== false) && (!btype || !c.bearing_type || c.bearing_type.toLowerCase() === btype.toLowerCase()));
   const ib = bore == null;
-  const flangeQ = dmount === "4-bolt flange" || dmount === "2-bolt flange";
+  const flangeQ = dmount === "4-bolt flange" || dmount === "2-bolt flange" || dmount === "3-bolt flange";
   // Stocked parts first, then by shaft size.
   const byBore = (a,b)=> (isStockFlange(b.c) - isStockFlange(a.c)) || (a.c.bore_in ?? 99)-(b.c.bore_in ?? 99) || a.c.brand.localeCompare(b.c.brand);
   const rows = all.filter(({r}) => status(r, ib) === "fit").sort(byBore);
@@ -1150,10 +1201,10 @@ function runDim(){
   // Tape-measure slack: within 1/16" on base to center and 1/8" on bolt centers.
   const near = all.filter(({r}) => status(r, ib) === "no" && r.boreOk !== false && Math.abs(r.dH) <= 0.0625 && r.gap <= 0.125 && Math.abs(r.dP) <= 0.0625)
     .sort((a,b)=> (isStockFlange(b.c) - isStockFlange(a.c)) || (Math.abs(a.r.dH) + Math.max(a.r.gap,0)) - (Math.abs(b.r.dH) + Math.max(b.r.gap,0)));
-  const what = [btype && `${esc(btype.toLowerCase())} bearing`, bore!=null && `${esc(fmtBore(bore))} shaft`, h!=null && `base to center ${esc(fmt(h))}`, pd!=null && `pilot ${esc(fmt(pd))}`, j!=null && (dmount === "Piloted flange" ? `bolt circle ${esc(fmt(j))}` : `bolts ${esc(fmt(j))} apart`)].filter(Boolean).join(", ");
+  const what = [btype && `${esc(btype.toLowerCase())} bearing`, bore!=null && `${esc(fmtBore(bore))} shaft`, h!=null && `base to center ${esc(fmt(h))}`, pd!=null && `pilot ${esc(fmt(pd))}`, j!=null && (dmount === "Piloted flange" ? `bolt circle ${esc(fmt(j))}` : dmount === "3-bolt flange" ? `bolts ${esc(fmt(jRaw))} apart (bolt circle ${esc(fmt(j))})` : `bolts ${esc(fmt(j))} apart`)].filter(Boolean).join(", ");
   const nStock = rows.filter(({c}) => isStockFlange(c)).length;
   const askBolt = flangeQ && j == null
-    ? `<div class="askbox" style="border-color:var(--accent)"><div><strong>Measure bolt to bolt to find the stocked flange.</strong> ${dmount === "4-bolt flange" ? "Measure from the middle of one bolt hole to the middle of the next hole along the same side (not corner to corner)." : "Measure from the middle of one bolt hole to the middle of the other."} Bolt spacing narrows the list to the flange that fits your holes.</div><button class="btn accent" id="askBoltGo" style="justify-self:start">Enter bolt to bolt →</button></div>` : "";
+    ? `<div class="askbox" style="border-color:var(--accent)"><div><strong>Measure bolt to bolt to find the stocked flange.</strong> ${dmount === "4-bolt flange" ? "Measure from the middle of one bolt hole to the middle of the next hole along the same side (not corner to corner)." : dmount === "3-bolt flange" ? "Measure from the middle of any bolt hole to the middle of another." : "Measure from the middle of one bolt hole to the middle of the other."} Bolt spacing narrows the list to the flange that fits your holes.</div><button class="btn accent" id="askBoltGo" style="justify-self:start">Enter bolt to bolt →</button></div>` : "";
   const mixTypes = [...new Set(rows.map(({c}) => String(c.bearing_type || "").trim()).filter(Boolean))];
   const typeNote = !btype && mixTypes.length > 1 ? `<div class="kindbar">These fits include ${mixTypes.length} different bearing types (${esc(mixTypes.join(", ").toLowerCase())}). They are not interchangeable with each other. Pick the bearing type to narrow it down.</div>` : "";
   const stockNote = typeNote + (nStock ? `<p class="note" style="margin:0"><strong>${nStock} stocked option${nStock===1?"":"s"}</strong> listed first.</p>` : "");
@@ -1247,7 +1298,7 @@ document.querySelectorAll(".useg [data-u]").forEach(b => b.addEventListener("cli
 }));
 // Example values in the boxes follow the chosen units.
 const PH = {dBore:["Optional, e.g. 1","Optional, e.g. 25"], dH:["e.g. 1-7/16","e.g. 36.5"], dP:["e.g. 4-1/2","e.g. 114"],
-  dJ:{"Pillow block":["e.g. 4-1/8","e.g. 105"], "4-bolt flange":["e.g. 2-3/4","e.g. 70"], "2-bolt flange":["e.g. 3-7/8","e.g. 98"], "Piloted flange":["e.g. 5-3/8","e.g. 137"]}};
+  dJ:{"Pillow block":["e.g. 4-1/8","e.g. 105"], "4-bolt flange":["e.g. 2-3/4","e.g. 70"], "2-bolt flange":["e.g. 3-7/8","e.g. 98"], "Piloted flange":["e.g. 5-3/8","e.g. 137"], "3-bolt flange":["e.g. 4-5/16","e.g. 110"]}};
 function setDimPlaceholders(){
   const k = units === "mm" ? 1 : 0, m = $("#dMount") ? $("#dMount").value : "";
   for (const id of ["dBore","dH","dP"]) $("#"+id).placeholder = PH[id][k];
@@ -1412,24 +1463,40 @@ function applyWriteState(){
   $("#addWrap").hidden = !canWrite; $("#csvGo").closest("details").hidden = !canWrite; $("#roNote").hidden = canWrite; renderCatalog();
 }
 
-/* ---------- data (public read-only copy: catalog.json next to this page) ---------- */
+/* ---------- data ---------- */
 (async () => {
+  if (!window.claude?.use){ $("#loadState").textContent = "Open this page on claude.ai to load the catalog."; return; }
+  db = await window.claude.use("db");
+  if (!db){ $("#loadState").textContent = "Sign in to claude.ai to load the bearing catalog."; return; }
+  const user = await window.claude.use("user");
+  if (user){ const w = await user.can("data.write"); if (w === false){ canWrite = false; } }
   applyWriteState();
-  try {
-    const res = await fetch("catalog.json", {cache: "no-cache"});
-    if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    decoders = (data.decoders || []).filter(d => Array.isArray(d.segments))
+  db.collection("decoders").limit(200).onSnapshot(snap => {
+    decoders = snap.docs.map(d => ({id:d.id, ...d.data()})).filter(d => Array.isArray(d.segments))
       .sort((a,b) => (a.order ?? 99) - (b.order ?? 99));
-    parts = (data.bearings || []).filter(p => p.part_number).map(p => ({...p, brand: p.brand || "Unknown brand"}));
-    if (data.exported) { const f = $("#asOf"); if (f) f.textContent = "Catalog as of " + data.exported + "."; }
-    renderGuides();
-    loaded = true; $("#loadState").hidden = true; showTab(activeTab);
-    if (!parts.length){ $("#loadState").hidden = false; $("#loadState").textContent = "The catalog is empty."; }
+    renderGuides(); if (loaded) runCross();
+  }, () => {});
+  // The catalog is read in slices by part number (each subscription returns at most 1000 parts).
+  const CUTS = ["", "C", "D", "F", "M", "N", "P", "P2B-S", "PB", "PK", "Q", "R", "S", "SD", "SF", "SH", "SP", "SR", "SRE", "SU", "T", "U", "UCF", "UCFL", "UCP", "UCPX", "UK", "V", "VF", "\uf8ff"];
+  const SLICES = CUTS.slice(0, -1).map((lo, i) => [lo, CUTS[i + 1]]);
+  const sliceDocs = SLICES.map(() => null);
+  const onSlice = (i, snap) => {
+    sliceDocs[i] = snap.docs;
+    if (sliceDocs.some(x => x === null)) return;
+    const seen = new Set();
+    clearTimeout(window.__sliceT); window.__sliceT = setTimeout(() => {
+    parts = sliceDocs.flat().filter(d => !seen.has(d.id) && seen.add(d.id)).map(d => ({id:d.id, ...d.data()})).filter(p => p.part_number).map(p => ({...p, brand: p.brand || "Unknown brand"}));
+    onParts();
+    }, 150);
+  };
+  SLICES.forEach(([lo, hi], i) => db.collection("bearings").where("part_number", ">=", lo).where("part_number", "<", hi).limit(1000)
+    .onSnapshot(snap => onSlice(i, snap), err => { $("#loadState").hidden=false; $("#loadState").textContent = "The catalog couldn't load. Reload the page to try again."; }));
+  function onParts(){
+    if (!loaded){
+      loaded = true; $("#loadState").hidden = true; showTab(activeTab);
+      if (!parts.length){ $("#loadState").hidden = false; $("#loadState").textContent = "The catalog is empty. Add parts on the Catalog tab."; }
+    }
     renderAll();
-  } catch (e) {
-    $("#loadState").hidden = false;
-    $("#loadState").textContent = "The catalog couldn't load. Reload the page to try again.";
   }
 })();
 setUnits(units);
@@ -1447,11 +1514,12 @@ function setDimMount(m){
   $("#fP").hidden = !pil; if (!pil) $("#dP").value = "";
   $("#dJn").textContent = pillow || pil ? "3" : "2";
   $("#dTn").textContent = pillow || pil ? "4" : "3";
-  $("#dJlabel").textContent = m === "4-bolt flange" ? "Bolt centers (one side of the square)" : pil ? "Bolt circle" : "Bolt centers";
+  $("#dJlabel").textContent = m === "4-bolt flange" ? "Bolt centers (one side of the square)" : m === "3-bolt flange" ? "Bolt to bolt (any two holes)" : pil ? "Bolt circle" : "Bolt centers";
   setDimPlaceholders();
   $("#dJnote").textContent = pil ? "Middle of one bolt hole straight across to the middle of the hole directly opposite (corner to corner on a 4-hole flange)."
     : m === "4-bolt flange" ? "Middle of one bolt hole to the middle of the next hole along the same side, not corner to corner."
-    : m === "2-bolt flange" ? "From the middle of one bolt hole to the middle of the other." : "From the middle of one mounting bolt to the middle of the other.";
+    : m === "2-bolt flange" ? "From the middle of one bolt hole to the middle of the other."
+    : m === "3-bolt flange" ? "From the middle of any bolt hole to the middle of another. The app works out the bolt circle." : "From the middle of one mounting bolt to the middle of the other.";
   $("#dimBody").innerHTML = ""; $("#dimNearWrap").hidden = true;
   $("#dType").closest(".field").after($("#dGo"));
 }
@@ -1475,5 +1543,3 @@ $("#newSearch").addEventListener("click", () => {
 });
 window.addEventListener("pageshow", e => { if (e.persisted) clearSearch(); });
 </script>
-
-</body></html>
